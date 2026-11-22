@@ -18,7 +18,7 @@ export function TrainingView() {
 
   return (
     <div
-      className="w-full max-w-full min-w-0 min-h-screen h-auto bg-slate-50 text-slate-900 flex flex-col p-3 sm:p-6 gap-6 overflow-y-auto overflow-x-hidden"
+      className="w-full max-w-full min-w-0 bg-slate-50 text-slate-900 flex flex-col p-3 sm:p-6 gap-6"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       {/* Header */}
@@ -76,3 +76,5 @@ export function TrainingView() {
     </div>
   );
 }
+
+export default TrainingView;

@@ -212,20 +212,20 @@ export function RoutineGrid({ activeWeek }: Props) {
 
       {/* Custom Exercise Form */}
       {showAddForm && (
-        <form onSubmit={handleAddExercise} className="border-b border-[#1E293B] bg-[#0A0D18] p-4 shrink-0 space-y-3 font-mono text-xs text-left">
-          <div className="flex items-center justify-between text-xs uppercase tracking-wider text-slate-400">
+        <form onSubmit={handleAddExercise} className="border border-slate-100 bg-slate-50/80 rounded-2xl p-4 shrink-0 space-y-3 font-sans text-xs text-left mb-3">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
             <span>Añadir Ejercicio Personalizado / Pool</span>
-            <button type="button" onClick={() => setShowAddForm(false)} className="text-slate-500 hover:text-slate-300">
-              <X size={12} />
+            <button type="button" onClick={() => setShowAddForm(false)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
+              <X size={14} />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs text-slate-500 uppercase mb-1">Seleccionar del Pool</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Seleccionar del Pool</label>
               <select
                 value={selectedPoolExIdx}
                 onChange={(e) => setSelectedPoolExIdx(e.target.value === "custom" ? "custom" : Number(e.target.value))}
-                className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7"
+                className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 font-medium text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
                 <option value="custom">-- Crear Personalizado --</option>
                 {EXERCISE_POOL.map((pEx, idx) => (
@@ -235,32 +235,63 @@ export function RoutineGrid({ activeWeek }: Props) {
             </div>
             {selectedPoolExIdx === "custom" && (
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Nombre Ejercicio</label>
-                <input required value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="Ej. Zancadas Búlgaras" className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Ejercicio</label>
+                <input
+                  required
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Ej. Zancadas Búlgaras"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 placeholder:text-slate-400 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
               </div>
             )}
           </div>
           {selectedPoolExIdx === "custom" && (
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Patrón</label>
-                <input value={customPattern} onChange={(e) => setCustomPattern(e.target.value)} className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Patrón</label>
+                <input
+                  value={customPattern}
+                  onChange={(e) => setCustomPattern(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Series</label>
-                <input type="number" min="1" max="8" value={customSets} onChange={(e) => setCustomSets(Number(e.target.value))} className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Series</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="8"
+                  value={customSets}
+                  onChange={(e) => setCustomSets(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Reps</label>
-                <input value={customReps} onChange={(e) => setCustomReps(e.target.value)} className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Reps</label>
+                <input
+                  value={customReps}
+                  onChange={(e) => setCustomReps(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Carga (kg)</label>
-                <input type="number" min="0" value={customLoad} onChange={(e) => setCustomLoad(Number(e.target.value))} className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Carga (kg)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={customLoad}
+                  onChange={(e) => setCustomLoad(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 outline-none text-slate-900 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 uppercase mb-1">Tensión</label>
-                <select value={customTension} onChange={(e) => setCustomTension(e.target.value)} className="w-full rounded border border-[#1E293B] bg-black px-2 py-1 outline-none text-[#E2E8F0] h-7">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tensión</label>
+                <select
+                  value={customTension}
+                  onChange={(e) => setCustomTension(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 outline-none text-slate-900 text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                >
                   <option value="Mechanical">Mecánica</option>
                   <option value="Metabolic">Metabólica</option>
                   <option value="Stretch-Loaded">Estiramiento</option>
@@ -268,26 +299,29 @@ export function RoutineGrid({ activeWeek }: Props) {
               </div>
             </div>
           )}
-          <button type="submit" className="w-full rounded bg-[#A855F7] text-white font-bold py-1.5 hover:bg-[#A855F7]/80 transition-colors uppercase text-xs tracking-widest">
+          <button
+            type="submit"
+            className="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2 shadow-md shadow-indigo-500/20 transition-all uppercase text-xs tracking-wider cursor-pointer spring-bounce"
+          >
             Agregar a la Rutina
           </button>
         </form>
       )}
 
       {/* Scrollable Table Container for Mobile */}
-      <div className="w-full overflow-x-auto scrollbar-none -mx-1 px-1 flex-1 min-w-0">
-        <div className="min-w-[580px] h-full flex flex-col">
+      <div className="w-full overflow-x-auto scrollbar-thin pb-2 flex-1 min-w-0">
+        <div className="min-w-[620px] h-full flex flex-col">
           {/* Column headers */}
-          <div className="grid grid-cols-[1.6fr_0.9fr_0.7fr_0.7fr_0.9fr] gap-2 px-4 sm:px-5 py-2.5 border-b border-[#1E293B] font-mono text-xs tracking-[0.12em] text-slate-500 uppercase shrink-0">
+          <div className="grid grid-cols-[2.2fr_1.2fr_0.6fr_0.6fr_1.1fr] gap-3 px-4 sm:px-5 py-2.5 border-b border-slate-100 font-mono text-xs tracking-[0.12em] text-slate-500 uppercase shrink-0 bg-slate-50/60 rounded-xl mb-1">
             <span>Ejercicio</span>
             <span>Patrón</span>
             <span className="text-right">Series <GlossaryTooltip term="MEV" /></span>
             <span className="text-right">Reps</span>
-            <span className="text-right">Carga</span>
+            <span className="text-right pr-4">Carga</span>
           </div>
 
           {/* Exercises List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-[#1E293B]/50">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
             {exercises.map((ex) => {
               const capped = ex.sets > setCap;
               const shownSets = capped ? setCap : ex.sets;
@@ -301,42 +335,46 @@ export function RoutineGrid({ activeWeek }: Props) {
               return (
                 <div
                   key={`routine-ex-${ex.id}`}
-                  className="px-4 sm:px-5 py-3 hover:bg-[#00F0FF]/[0.03] transition-colors text-left"
+                  className="px-4 sm:px-5 py-3 hover:bg-slate-50/80 transition-colors text-left"
                 >
-                  <div className="grid grid-cols-[1.6fr_0.9fr_0.7fr_0.7fr_0.9fr] gap-2 items-center">
-                    <div className="min-w-0">
-                      <div className="text-slate-100 text-sm font-semibold truncate flex items-center gap-1.5">
-                        <span className="truncate">{ex.name}</span>
-                        <GlossaryTooltip
-                          term={(ex.tensionType || "mechanical").toLowerCase()}
-                          instanceId={`exercise-row-${ex.id}`}
-                          position="bottom"
-                        />
+                  <div className="grid grid-cols-[2.2fr_1.2fr_0.6fr_0.6fr_1.1fr] gap-3 items-center">
+                    <div className="min-w-0 pr-1">
+                      <div className="text-slate-900 font-semibold text-sm flex items-start gap-1.5 whitespace-normal break-words leading-snug">
+                        <span className="whitespace-normal break-words">{ex.name}</span>
+                        <span className="shrink-0 mt-0.5">
+                          <GlossaryTooltip
+                            term={(ex.tensionType || "mechanical").toLowerCase()}
+                            instanceId={`exercise-row-${ex.id}`}
+                            position="bottom"
+                          />
+                        </span>
                         {isCustom && (
                           <button
                             onClick={() => handleRemoveCustomExercise(ex.id)}
-                            className="text-slate-500 hover:text-[#FF4D4D] transition-colors p-1"
+                            className="text-slate-400 hover:text-rose-600 transition-colors p-1 cursor-pointer shrink-0"
                             title="Eliminar ejercicio"
                           >
                             <Trash2 size={12} />
                           </button>
                         )}
                       </div>
-                      <div className="font-mono text-xs tracking-wider text-slate-500 uppercase">
+                      <div className="font-mono text-xs tracking-wider text-slate-500 uppercase mt-0.5 whitespace-normal">
                         Tensión {tensionLabels[ex.tensionType] || ex.tensionType}
                       </div>
                     </div>
-                    <span className="font-mono text-xs tracking-wider text-[#A855F7] truncate">{ex.pattern}</span>
+                    <span className="font-mono text-xs tracking-wider text-indigo-600 font-bold whitespace-normal break-words leading-snug">
+                      {ex.pattern}
+                    </span>
                     <div className="text-right">
-                      <span className={["font-mono text-base font-bold", capped ? "text-[#FF4D4D]" : "text-slate-100"].join(" ")}>
+                      <span className={["font-mono text-base font-bold", capped ? "text-rose-600" : "text-slate-900"].join(" ")}>
                         {shownSets}
                       </span>
                       {capped && (
-                        <span className="font-mono text-xs text-[#FF4D4D]/70 line-through ml-1">{ex.sets}</span>
+                        <span className="font-mono text-xs text-rose-500/80 line-through ml-1">{ex.sets}</span>
                       )}
                     </div>
-                    <span className="font-mono text-base text-slate-200 text-right">{ex.repRange}</span>
-                    <div className="text-right flex items-center justify-end gap-1.5">
+                    <span className="font-mono text-base text-slate-700 font-medium text-right">{ex.repRange}</span>
+                    <div className="text-right flex items-center justify-end gap-1.5 pr-4 min-w-[88px] shrink-0 whitespace-nowrap">
                       <input
                         type="number"
                         value={
@@ -352,17 +390,17 @@ export function RoutineGrid({ activeWeek }: Props) {
                             updateExerciseLoadOverride(ex.id, val);
                           }
                         }}
-                        className="w-16 bg-slate-950/90 border border-slate-800 text-cyan-300 rounded-xl px-2.5 py-1.5 text-sm text-center focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 font-mono shadow-inner outline-none transition-all"
+                        className="w-16 bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-2.5 py-1.5 text-sm text-center font-mono font-bold shadow-xs outline-none transition-all"
                       />
-                      <span className="font-mono text-xs text-slate-400 font-semibold">kg</span>
+                      <span className="font-mono text-xs text-slate-500 font-semibold shrink-0">kg</span>
                     </div>
                   </div>
 
                   {/* Live Series Checkboxes if Workout Track Active */}
                   {activeEx && (
-                    <div className="mt-2.5 p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-                      <span className="font-mono text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5 font-bold">
-                        <Zap size={11} className="text-emerald-400" /> Control de series:
+                    <div className="mt-2.5 p-2.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-mono text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5 font-bold">
+                        <Zap size={12} className="text-emerald-600" /> Control de series:
                       </span>
                       <div className="flex items-center gap-2 flex-wrap">
                         {Array.from({ length: shownSets }).map((_, sIdx) => {
@@ -373,12 +411,12 @@ export function RoutineGrid({ activeWeek }: Props) {
                               key={`set-chk-${ex.id}-${sIdx}`}
                               onClick={() => toggleWorkoutSet(activeEx.id, sIdx)}
                               disabled={isDisabled}
-                              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border-2 transition-all flex items-center justify-center font-mono text-xs font-bold cursor-pointer ${
+                              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border-2 transition-all flex items-center justify-center font-mono text-xs font-bold cursor-pointer spring-bounce ${
                                 isDisabled
-                                  ? "border-slate-800 text-slate-700 bg-slate-950/40 cursor-not-allowed opacity-30"
+                                  ? "border-slate-200 text-slate-300 bg-slate-100 cursor-not-allowed opacity-40"
                                   : isDone
-                                  ? "bg-emerald-500 border-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                                  : "bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-400"
+                                  ? "bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/25"
+                                  : "bg-white border-slate-300 text-slate-700 hover:border-emerald-500"
                               }`}
                             >
                               {isDone ? "✓" : sIdx + 1}
@@ -396,7 +434,7 @@ export function RoutineGrid({ activeWeek }: Props) {
       </div>
 
       {/* RIR autoscale footer */}
-      <div className="px-5 py-3 border-t border-[#1E293B] flex items-center justify-between shrink-0">
+      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between shrink-0">
         <span className="font-mono text-xs tracking-widest text-slate-500 uppercase flex items-center">
           Ajuste Automático de Proximidad al Fallo
           <GlossaryTooltip term="MRV" />
@@ -409,10 +447,10 @@ export function RoutineGrid({ activeWeek }: Props) {
               <div
                 key={`autoscale-week-${w.index}`}
                 className={[
-                  "font-mono text-xs px-1.5 py-0.5 rounded-sm border font-bold",
+                  "font-mono text-xs px-2 py-0.5 rounded-lg border font-bold",
                   isCurrentWeek
-                    ? "border-[#00F0FF] text-[#00F0FF] bg-[#00F0FF]/10"
-                    : "border-[#1E293B] text-slate-500",
+                    ? "border-indigo-300 text-indigo-700 bg-indigo-50 shadow-xs"
+                    : "border-slate-200 text-slate-500 bg-slate-50",
                 ].join(" ")}
               >
                 {rirTargetLabel.replace("RIR ", "").replace(" · To Failure", "F")}

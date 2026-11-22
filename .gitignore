@@ -7,6 +7,13 @@ dist/
 dist-ssr/
 *.local
 
+# Firebase & Cloud Functions
+functions/lib/
+functions/node_modules/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
 # Capacitor / Android build outputs
 android/app/build/
 android/.gradle/
@@ -14,9 +21,11 @@ android/build/
 android/local.properties
 android/captures/
 android/.idea/
+android/app/src/main/assets/public/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
 

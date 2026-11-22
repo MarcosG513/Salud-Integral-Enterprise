@@ -13,15 +13,15 @@ function MacroLine({ meal, m }: { meal: MealPhase; m: (typeof MACROS)[number] })
   const pct = target ? Math.min(100, (logged / target) * 100) : 0;
   return (
     <div className="flex items-center gap-2">
-      <span className="w-8 font-mono text-xs font-bold tracking-widest text-slate-400">{m.label}</span>
-      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-950/80 border border-slate-800">
+      <span className="w-8 font-mono text-xs font-bold tracking-widest text-slate-500">{m.label}</span>
+      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: m.gradient, boxShadow: `0 0 8px ${m.glow}` }}
         />
       </div>
-      <span className="w-16 text-right font-mono text-xs font-bold text-slate-300">
-        {logged}<span className="text-slate-500 font-normal">/{target}g</span>
+      <span className="w-16 text-right font-mono text-xs font-bold text-slate-700">
+        {logged}<span className="text-slate-400 font-normal">/{target}g</span>
       </span>
     </div>
   );

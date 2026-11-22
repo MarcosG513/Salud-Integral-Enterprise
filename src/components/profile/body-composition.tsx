@@ -1,4 +1,4 @@
-﻿import { Activity } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useClinicalEngine } from "../../context/clinical-engine-context";
 import { Panel } from "./panel-shell";
 
@@ -19,27 +19,26 @@ function DataRow({
 }) {
   return (
     <div
-      className="rounded-md border px-3 py-2.5"
-      style={{ borderColor: "#1E293B", background: "#070A13" }}
+      className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 shadow-xs"
     >
       <div className="flex items-baseline justify-between">
         <span
-          className="uppercase tracking-[0.16em] text-[#64748B] font-mono text-xs"
+          className="uppercase tracking-[0.16em] text-slate-600 font-mono text-xs font-semibold"
           style={{ fontFamily: MONO }}
         >
           {label}
         </span>
-        <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 700, color: accent }} className="font-mono">
+        <span style={{ fontFamily: MONO }} className="font-mono text-lg font-extrabold text-slate-900">
           {value}
-          <span className="ml-1 text-[#475569] font-normal" style={{ fontSize: 11 }}>
+          <span className="ml-1 text-slate-500 font-normal text-xs" style={{ fontFamily: MONO }}>
             {unit}
           </span>
         </span>
       </div>
-      <div className="mt-2 h-1 w-full rounded-full" style={{ background: "#1E293B" }}>
+      <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-300"
-          style={{ width: `${bar}%`, background: accent, boxShadow: `0 0 8px ${accent}` }}
+          style={{ width: `${bar}%`, background: accent }}
         />
       </div>
     </div>
@@ -60,28 +59,28 @@ export function BodyComposition() {
   const ffmPct = weight > 0 ? (ffm / weight) * 100 : 0;
 
   return (
-    <Panel title="Composición Corporal" code="ADIPOSE//02" icon={<Activity size={15} />} className="h-full">
+    <Panel title="Composición Corporal" code="ADIPOSE//02" icon={<Activity size={16} />} className="h-full">
       <div className="flex h-full flex-col text-left">
         {/* Big readout */}
         <div className="mb-4 text-center">
           <span
-            className="uppercase tracking-[0.24em] text-[#64748B] font-mono text-xs"
+            className="uppercase tracking-[0.24em] text-slate-500 font-mono text-xs font-semibold"
             style={{ fontFamily: MONO }}
           >
             Porcentaje de Grasa Corporal
           </span>
           <div className="mt-1 flex items-end justify-center gap-1">
-            <span style={{ fontFamily: MONO, fontSize: 56, fontWeight: 800, color: "#00F0FF", lineHeight: 1 }} className="font-mono">
+            <span style={{ fontFamily: MONO }} className="font-mono text-5xl sm:text-6xl font-black text-sky-600 leading-none">
               {bodyFat.toFixed(1)}
             </span>
-            <span className="mb-2 text-[#475569] font-mono text-[20px]" style={{ fontFamily: MONO }}>
+            <span className="mb-1 text-slate-400 font-mono text-xl font-bold" style={{ fontFamily: MONO }}>
               %
             </span>
           </div>
         </div>
 
         {/* High-precision slider */}
-        <div className="mb-2">
+        <div className="mb-3">
           <input
             type="range"
             value={bodyFat}
@@ -89,12 +88,12 @@ export function BodyComposition() {
             max={50}
             step={0.1}
             onChange={(e) => setBodyFat(Number(e.target.value))}
-            className="w-full h-2 appearance-none rounded-full cursor-pointer accent-[#00F0FF]"
+            className="w-full h-2 appearance-none rounded-full cursor-pointer accent-sky-600"
             style={{
-              background: `linear-gradient(90deg, #00F0FF ${((bodyFat - 3) / 47) * 100}%, #1E293B ${((bodyFat - 3) / 47) * 100}%)`,
+              background: `linear-gradient(90deg, #0284C7 ${((bodyFat - 3) / 47) * 100}%, #E2E8F0 ${((bodyFat - 3) / 47) * 100}%)`,
             }}
           />
-          <div className="mt-1 flex justify-between text-[#334155] font-mono text-xs" style={{ fontFamily: MONO }}>
+          <div className="mt-1.5 flex justify-between text-slate-500 font-mono text-xs font-semibold" style={{ fontFamily: MONO }}>
             <span>3%</span>
             <span>ESENCIAL</span>
             <span>ATLÉTICO</span>
@@ -103,25 +102,24 @@ export function BodyComposition() {
         </div>
 
         {/* Composition split bar */}
-        <div className="my-3 flex h-3 w-full overflow-hidden rounded-full border" style={{ borderColor: "#1E293B" }}>
-          <div style={{ width: `${ffmPct}%`, background: "#39FF14", boxShadow: "0 0 10px #39FF14" }} />
-          <div style={{ width: `${bodyFat}%`, background: "#00F0FF" }} />
+        <div className="my-3 flex h-3 w-full overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-inner">
+          <div style={{ width: `${ffmPct}%` }} className="bg-emerald-500 transition-all duration-300" />
+          <div style={{ width: `${bodyFat}%` }} className="bg-sky-500 transition-all duration-300" />
         </div>
 
         {/* Data-table style readout */}
         <div className="mt-auto grid grid-cols-2 gap-3">
-          <DataRow label="Masa Magra · FFM" value={ffm.toFixed(1)} unit="kg" accent="#39FF14" bar={ffmPct} />
-          <DataRow label="Masa Grasa · FM" value={fatMass.toFixed(1)} unit="kg" accent="#00F0FF" bar={bodyFat} />
+          <DataRow label="Masa Magra · FFM" value={ffm.toFixed(1)} unit="kg" accent="#10B981" bar={ffmPct} />
+          <DataRow label="Masa Grasa · FM" value={fatMass.toFixed(1)} unit="kg" accent="#0284C7" bar={bodyFat} />
         </div>
         <div
-          className="mt-3 flex items-center justify-between rounded-md border px-3 py-2"
-          style={{ borderColor: "#1E293B", background: "rgba(57,255,20,0.04)" }}
+          className="mt-3 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-2.5 shadow-xs"
         >
-          <span className="uppercase tracking-[0.16em] text-[#64748B] font-mono text-xs" style={{ fontFamily: MONO }}>
+          <span className="uppercase tracking-[0.16em] text-slate-700 font-mono text-xs font-bold" style={{ fontFamily: MONO }}>
             Peso de Báscula (Tendencia EMA)
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: "#E2E8F0" }} className="font-mono">
-            {weight.toFixed(1)} <span className="text-[#475569] text-xs">kg</span>
+          <span style={{ fontFamily: MONO }} className="font-mono text-base font-black text-emerald-700">
+            {weight.toFixed(1)} <span className="text-emerald-600/70 text-xs font-semibold">kg</span>
           </span>
         </div>
       </div>

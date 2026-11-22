@@ -49,7 +49,7 @@ export function DashboardView({ onOpenSettings }: { onOpenSettings: () => void }
     : { dot: "#64748B", label: "En espera", pulse: false };
 
   return (
-    <div className="relative flex-1 min-h-screen w-full max-w-full overflow-x-hidden flex flex-col gap-4 sm:gap-6 p-4 sm:p-8 bg-slate-50 text-slate-900 font-sans">
+    <div className="relative flex-1 w-full max-w-full flex flex-col gap-4 sm:gap-6 p-4 sm:p-8 bg-slate-50 text-slate-900 font-sans">
       
       {/* Header Greeting */}
       <header className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-3xl bg-white p-5 sm:px-6 sm:py-5 border border-slate-100 shadow-xl shadow-slate-200/50 shrink-0 w-full min-w-0">
@@ -100,7 +100,7 @@ export function DashboardView({ onOpenSettings }: { onOpenSettings: () => void }
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-sm sm:text-base tracking-wide">Entrenador IA · Gemini 3.5</span>
+              <span className="font-bold text-sm sm:text-base tracking-wide">Entrenador IA · Gemini 3.8 Flash</span>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md font-semibold">
                 {statusConfig.label}
               </span>
@@ -140,17 +140,21 @@ export function DashboardView({ onOpenSettings }: { onOpenSettings: () => void }
           </div>
 
           <div className="my-4 space-y-3">
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-slate-500 font-medium">Fase Actual:</span>
-              <span className="font-bold text-slate-900 uppercase">{metrics.training.phaseName} (Semana {activeWeek}/5)</span>
+            <div className="flex items-center justify-between gap-3 text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium shrink-0">Fase Actual:</span>
+              <span className="font-bold text-slate-900 uppercase text-right">{metrics.training.phaseName} (Semana {activeWeek}/5)</span>
             </div>
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-slate-500 font-medium">Series Prescritas:</span>
-              <span className="font-bold text-indigo-600 font-mono">{metrics.training.sets} series</span>
+            <div className="flex items-center justify-between gap-3 text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium shrink-0">Series Prescritas:</span>
+              <span className="font-bold text-indigo-600 font-mono text-right">
+                {String(metrics.training.sets).toLowerCase().includes("series")
+                  ? metrics.training.sets
+                  : `${metrics.training.sets} series`}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-slate-500 font-medium">Objetivo RIR:</span>
-              <span className="font-bold text-emerald-600 font-mono">{metrics.training.intensity}</span>
+            <div className="flex items-center justify-between gap-3 text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium shrink-0">Objetivo RIR:</span>
+              <span className="font-bold text-emerald-600 font-mono text-right">{metrics.training.intensity}</span>
             </div>
           </div>
 

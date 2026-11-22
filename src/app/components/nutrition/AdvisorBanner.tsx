@@ -1,4 +1,4 @@
-﻿import { TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useClinicalEngine } from "../../../context/clinical-engine-context";
 
 export function AdvisorBanner() {
@@ -7,10 +7,10 @@ export function AdvisorBanner() {
 
   return (
     <footer className="flex items-center gap-3 border-t border-[#39FF14]/25 bg-gradient-to-r from-[#39FF14]/[0.06] to-transparent px-6 py-2">
-      <div className="flex items-center gap-2 border-r border-[#1E293B] pr-3">
-        <TriangleAlert className="h-3.5 w-3.5 text-[#39FF14]" />
-        <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#39FF14]">
-          Estado de Asesoría
+      <div className="flex items-center gap-2 border-r border-slate-200 pr-3">
+        <TriangleAlert className="h-3.5 w-3.5 text-emerald-600" />
+        <span className="font-mono text-xs font-bold uppercase tracking-widest text-emerald-700">
+          Estado de Asesoría · Gemini 3.8 Flash
         </span>
       </div>
       <p className="truncate font-mono text-[11px] text-slate-400">

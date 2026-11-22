@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ATO Central Engine — Autonomous Telemetry Orchestrator
-// Powered by: gemini-3.5-flash-lite
-// Quota strategy: 15 RPM Free Tier — payload hash cache + 30s cooldown guard
+// Client-side Driver (Hermetic: Zero API Keys on Client)
+// Routes via Vercel Serverless Proxy (/api/ato) or VITE_ATO_PROXY_URL
+// Includes Circuit Breaker + 4 Local Resilience Barriers + Heuristic Fallback
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -41,7 +42,8 @@ export interface ATODirective {
     deloadSuggested: boolean;
   };
   supplementAlerts: string[];
-  _source?: "gemini" | "cache" | "fallback";
+  _source?: "gemini" | "gemini_proxy" | "cache" | "fallback";
+  _model?: string;
   _timestamp?: number;
 }
 
@@ -51,23 +53,86 @@ export interface ATOResult {
   error?: string;
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants & Configuration ─────────────────────────────────────────────────
 
-const GEMINI_MODEL = "gemini-3.5-flash-lite";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const COOLDOWN_MS = 30_000;          // 30 seconds between API calls
+const PROXY_URL = import.meta.env.VITE_ATO_PROXY_URL || "/api/ato";
+
+const COOLDOWN_MS = 30_000;          // 30 seconds between calls
 const CACHE_TTL_MS = 5 * 60_000;    // 5-minute cache TTL per payload hash
 const LS_TIMESTAMP_KEY = "ato_last_call_timestamp";
-const LS_CACHE_PREFIX = "ato_cache_";
+const LS_CACHE_PREFIX = "ato_cache_es_v2_";
 const TIMEOUT_MS = 15_000;           // 15-second request timeout
 
-// ── Payload Hashing (djb2 fast string hash) ───────────────────────────────────
+// ── Circuit Breaker Pattern ───────────────────────────────────────────────────
+// 3 consecutive failures -> state OPEN for 60s -> auto retry in HALF_OPEN
+
+interface CircuitBreakerState {
+  failures: number;
+  lastFailureTime: number;
+  state: "CLOSED" | "OPEN" | "HALF_OPEN";
+}
+
+const circuitBreaker: CircuitBreakerState = {
+  failures: 0,
+  lastFailureTime: 0,
+  state: "CLOSED",
+};
+
+const CB_FAILURE_THRESHOLD = 3;
+const CB_RESET_TIMEOUT_MS = 60_000;
+
+export function isCircuitBreakerOpen(): boolean {
+  if (circuitBreaker.state === "OPEN") {
+    if (Date.now() - circuitBreaker.lastFailureTime > CB_RESET_TIMEOUT_MS) {
+      circuitBreaker.state = "HALF_OPEN";
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+export function recordBreakerSuccess(): void {
+  circuitBreaker.failures = 0;
+  circuitBreaker.state = "CLOSED";
+}
+
+export function recordBreakerFailure(): void {
+  circuitBreaker.failures += 1;
+  circuitBreaker.lastFailureTime = Date.now();
+  if (circuitBreaker.failures >= CB_FAILURE_THRESHOLD) {
+    circuitBreaker.state = "OPEN";
+    console.warn("[ATO CircuitBreaker] 3 consecutive failures. State OPEN for 60s.");
+  }
+}
+
+export function resetCircuitBreaker(): void {
+  circuitBreaker.failures = 0;
+  circuitBreaker.lastFailureTime = 0;
+  circuitBreaker.state = "CLOSED";
+}
+
+// ── Payload Hashing (djb2 fast string hash with normalized EA & last weight) ───
 
 function computeHash(input: ATOInput): string {
+  const lastWeight = input.profile.weightLogs?.length
+    ? input.profile.weightLogs[input.profile.weightLogs.length - 1]
+    : 70;
+
+  const normalizedEA = Math.round(input.energyAvailability * 10) / 10;
+
   const raw = JSON.stringify({
     labs: input.labs,
-    energyAvailability: input.energyAvailability,
-    profile: input.profile,
+    energyAvailability: normalizedEA,
+    profile: {
+      age: input.profile.age,
+      bodyFat: input.profile.bodyFat,
+      activityFactor: input.profile.activityFactor,
+      mesocycleWeek: input.profile.mesocycleWeek,
+      deficitTarget: input.profile.deficitTarget,
+      cnsReadiness: input.profile.cnsReadiness,
+      lastWeight,
+    },
   });
   let hash = 5381;
   for (let i = 0; i < raw.length; i++) {
@@ -77,7 +142,40 @@ function computeHash(input: ATOInput): string {
   return (hash >>> 0).toString(16); // unsigned hex
 }
 
-// ── LocalStorage Cache Layer ───────────────────────────────────────────────────
+// ── LocalStorage Cache Layer with TTL Purge ────────────────────────────────────
+
+export function purgeExpiredCache(): void {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      // Clean legacy English cache keys or expired Spanish cache keys
+      if (key && (key.startsWith("ato_cache_") || key.startsWith(LS_CACHE_PREFIX))) {
+        if (!key.startsWith(LS_CACHE_PREFIX)) {
+          // Legacy cache key from v1 (which may contain English responses) — immediately remove
+          keysToRemove.push(key);
+          continue;
+        }
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const cached: ATODirective = JSON.parse(raw);
+            const age = Date.now() - (cached._timestamp ?? 0);
+            if (age > CACHE_TTL_MS) {
+              keysToRemove.push(key);
+            }
+          }
+        } catch {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}
+
+// Execute purge when service loads
+purgeExpiredCache();
 
 function readCache(hash: string): ATODirective | null {
   try {
@@ -97,7 +195,11 @@ function readCache(hash: string): ATODirective | null {
 
 function writeCache(hash: string, directive: ATODirective): void {
   try {
-    const toStore: ATODirective = { ...directive, _timestamp: Date.now(), _source: "gemini" };
+    const toStore: ATODirective = {
+      ...directive,
+      _timestamp: Date.now(),
+      _source: directive._source || "gemini",
+    };
     localStorage.setItem(LS_CACHE_PREFIX + hash, JSON.stringify(toStore));
   } catch {
     // localStorage full or disabled — silently skip caching
@@ -122,129 +224,71 @@ function stampCooldown(): void {
   } catch {}
 }
 
-// ── Structured System Prompt ───────────────────────────────────────────────────
+// ── Proxy Client Call with AbortController ────────────────────────────────────
 
-const SYSTEM_INSTRUCTION = `You are ATO — Autonomous Telemetry Orchestrator — a clinical AI engine embedded in a precision health dashboard. Your role is to analyze hormonal lab values, energy availability, and training profile data, then synthesize a concise clinical directive.
-
-CRITICAL: Respond ONLY with a single JSON object. No markdown, no prose, no code fences — pure JSON only.
-
-Output schema (strict):
-{
-  "axisStatus": "OPTIMAL" | "FUNCTIONAL_DOMINANT" | "SUPPRESSED_WARNING" | "CRITICAL_RESET",
-  "clinicalSummary": "<string, max 120 chars, in Spanish>",
-  "nutritionPatch": {
-    "carbMultiplierBonus": <float, -0.5 to +0.5, adjustment to carb allocation>,
-    "recommendedDeficitSurplus": <integer kcal, negative=deficit, positive=surplus>
-  },
-  "trainingPatch": {
-    "volumeMode": "MEV" | "MAV" | "MRV" | "DELOAD",
-    "intensityCapRIR": <integer 0-4, reps in reserve cap>,
-    "deloadSuggested": <boolean>
-  },
-  "supplementAlerts": [<string array, max 3 items, in Spanish, each max 60 chars>]
-}
-
-Axis status logic:
-- OPTIMAL: testosterone ≥ 550, cortisol ≤ 18, EA ≥ 35, CNS ≥ 75
-- FUNCTIONAL_DOMINANT: testosterone 350-549, or cortisol 18-22, or EA 30-34
-- SUPPRESSED_WARNING: testosterone 300-349, or cortisol > 22, or EA < 30
-- CRITICAL_RESET: testosterone < 300, or LH < 1.5, or EA < 25
-
-Respond now with the JSON directive based on the telemetry data provided.`;
-
-// ── Gemini REST API Call ───────────────────────────────────────────────────────
-
-async function callGeminiAPI(input: ATOInput, apiKey: string): Promise<ATODirective> {
-  const userContent = `TELEMETRÍA CLÍNICA:
-Laboratorio Hormonal:
-  - LH: ${input.labs.lh} UI/L (ref: 1.7–8.6)
-  - FSH: ${input.labs.fsh} UI/L (ref: 1.5–12.4)
-  - Testosterona Total: ${input.labs.testosterone} ng/dL (ref: 300–1000)
-  - SHBG: ${input.labs.shbg} nmol/L (ref: 10–57)
-  - Cortisol: ${input.labs.cortisol} µg/dL (ref: 6–23)
-  - Prolactina: ${input.labs.prolactina ?? "N/A"} ng/mL
-  - Estradiol: ${input.labs.estradiol ?? "N/A"} pg/mL
-
-Disponibilidad Energética: ${input.energyAvailability.toFixed(1)} kcal/kg FFM/día
-Déficit calórico objetivo: ${input.profile.deficitTarget} kcal
-Semana de mesociclo: ${input.profile.mesocycleWeek}/5
-Preparación SNC: ${input.profile.cnsReadiness}%
-Factor de actividad: ${input.profile.activityFactor}
-Grasa corporal: ${input.profile.bodyFat}%
-Edad: ${input.profile.age} años
-
-Genera la directiva ATO ahora.`;
-
-  const body = {
-    system_instruction: {
-      parts: [{ text: SYSTEM_INSTRUCTION }],
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: userContent }],
-      },
-    ],
-    generationConfig: {
-      temperature: 0.1,
-      topP: 0.8,
-      maxOutputTokens: 512,
-      responseMimeType: "application/json",
-    },
-  };
-
+async function callATOProxy(input: ATOInput): Promise<ATODirective> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const res = await fetch(PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(input),
       signal: controller.signal,
     });
 
-    if (response.status === 429) {
-      throw new Error("RATE_LIMIT_429");
+    if (!res.ok) {
+      throw new Error(`PROXY_STATUS_${res.status}`);
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP_${response.status}`);
+    const data = await res.json();
+    if (!data?.directive?.axisStatus || !data?.directive?.clinicalSummary) {
+      throw new Error("INVALID_PROXY_PAYLOAD");
     }
 
-    const json = await response.json();
-    const rawText: string =
-      json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    // Strip any accidental markdown fences
-    const cleaned = rawText.replace(/```json|```/gi, "").trim();
-    const directive: ATODirective = JSON.parse(cleaned);
-
-    // Validate required fields
-    if (!directive.axisStatus || !directive.clinicalSummary) {
-      throw new Error("INVALID_SCHEMA");
-    }
-
-    return directive;
+    recordBreakerSuccess();
+    return data.directive;
+  } catch (err: any) {
+    recordBreakerFailure();
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }
 }
 
-// ── Local Mathematical Fallback Heuristic Engine ──────────────────────────────
-// Triggered when: 429, timeout, missing key, invalid JSON, or any throw.
-// Computes directive purely from thresholds — zero API calls, zero crashes.
+// ── Extended Local Mathematical Fallback Heuristic Engine ─────────────────────
+// Evaluates Testosterone, Cortisol, LH, EA, Prolactin, Estradiol & CNS
+// Purely offline, zero crashes, zero external API calls
 
-function computeFallbackDirective(input: ATOInput): ATODirective {
+export function computeFallbackDirective(input: ATOInput): ATODirective {
   const { labs, energyAvailability, profile } = input;
+
+  // ─ Extended Prolactin & Estradiol checks ─
+  const hasHighProlactin = typeof labs.prolactina === "number" && labs.prolactina > 18;
+  const e2 = labs.estradiol;
+  const t = labs.testosterone;
+  const isHighEstradiol = typeof e2 === "number" && e2 > 40;
+  const isHighE2ToTRatio = typeof e2 === "number" && typeof t === "number" && t > 0 && (e2 / t > 0.08);
 
   // ─ Axis status ─
   let axisStatus: ATODirective["axisStatus"] = "OPTIMAL";
   if (labs.testosterone < 300 || labs.lh < 1.5 || energyAvailability < 25) {
     axisStatus = "CRITICAL_RESET";
-  } else if (labs.testosterone < 350 || labs.cortisol > 22 || energyAvailability < 30) {
+  } else if (
+    labs.testosterone < 350 || 
+    labs.cortisol > 22 || 
+    energyAvailability < 30 ||
+    hasHighProlactin ||
+    isHighE2ToTRatio
+  ) {
     axisStatus = "SUPPRESSED_WARNING";
-  } else if (labs.testosterone < 550 || labs.cortisol > 18 || energyAvailability < 35) {
+  } else if (
+    labs.testosterone < 550 || 
+    labs.cortisol > 18 || 
+    energyAvailability < 35 ||
+    isHighEstradiol
+  ) {
     axisStatus = "FUNCTIONAL_DOMINANT";
   }
 
@@ -290,13 +334,19 @@ function computeFallbackDirective(input: ATOInput): ATODirective {
   if (labs.cortisol > 20) supplementAlerts.push("Cortisol elevado: aumentar KSM-66 a 900mg");
   if (labs.testosterone < 400) supplementAlerts.push("Testosterona baja: priorizar Zinc + D3");
   if (energyAvailability < 30) supplementAlerts.push("EA crítica: añadir carbohidratos pre-entreno");
+  if (hasHighProlactin) supplementAlerts.push("Prolactina elevada (>18 ng/mL): considerar P-5-P (B6) y Zinc");
+  if (isHighEstradiol || isHighE2ToTRatio) supplementAlerts.push("Estradiol elevado: moderar aromatización con Zinc y hábitos");
 
   // ─ Summary ─
   const summaryMap: Record<ATODirective["axisStatus"], string> = {
     OPTIMAL: "Eje HPG estable. Continuar protocolo actual sin ajustes.",
-    FUNCTIONAL_DOMINANT: "Eje HPG funcional con señales de alerta. Monitorear.",
-    SUPPRESSED_WARNING: "Supresión parcial detectada. Reducir déficit y volumen.",
-    CRITICAL_RESET: "Supresión crítica. Protocolizar descarga y restacar energía.",
+    FUNCTIONAL_DOMINANT: isHighEstradiol
+      ? "Eje HPG funcional con leve elevación estrogénica. Monitorear."
+      : "Eje HPG funcional con señales de alerta. Monitorear.",
+    SUPPRESSED_WARNING: hasHighProlactin
+      ? "Alerta: Prolactina elevada suprimiendo eje gonadal. Reducir estrés."
+      : "Supresión parcial detectada. Reducir déficit y volumen.",
+    CRITICAL_RESET: "Supresión crítica. Protocolizar descarga y rescatar energía.",
   };
 
   return {
@@ -322,7 +372,7 @@ function computeFallbackDirective(input: ATOInput): ATODirective {
 export async function runATODiagnosis(input: ATOInput, forceSkipCooldown = false): Promise<ATOResult> {
   const hash = computeHash(input);
 
-  // 1. Cache hit — return immediately, no API call
+  // 1. Cache hit — return immediately, no network call
   const cached = readCache(hash);
   if (cached) {
     return { directive: cached };
@@ -334,32 +384,28 @@ export async function runATODiagnosis(input: ATOInput, forceSkipCooldown = false
     return { directive: null, cooldownRemaining };
   }
 
-  // 3. API key check
-  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY as string | undefined;
-  if (!apiKey || apiKey.trim() === "" || apiKey === "your_key_here") {
-    console.warn("[ATO] No Gemini API key configured — running fallback heuristics.");
+  // 3. Circuit breaker guard: if open, immediately serve offline heuristics
+  if (isCircuitBreakerOpen()) {
+    console.warn("[ATO] Circuit breaker is OPEN — serving offline fallback heuristics.");
     const fallback = computeFallbackDirective(input);
     writeCache(hash, fallback);
-    return { directive: fallback };
+    return { directive: fallback, error: "CIRCUIT_BREAKER_OPEN" };
   }
 
-  // 4. Stamp cooldown before making the call (prevents race conditions)
+  // 4. Stamp cooldown
   stampCooldown();
 
-  // 5. Gemini API call with fallback safety net
+  // 5. Proxy call with automatic heuristic fallback
   try {
-    const directive = await callGeminiAPI(input, apiKey);
-    const result: ATODirective = { ...directive, _source: "gemini", _timestamp: Date.now() };
+    const directive = await callATOProxy(input);
+    const result: ATODirective = { ...directive, _source: directive._source || "gemini_proxy", _timestamp: Date.now() };
     writeCache(hash, result);
     return { directive: result };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn(`[ATO] Gemini call failed (${message}) — activating fallback heuristics.`);
+    console.warn(`[ATO] Proxy call failed (${message}) — activating fallback heuristics.`);
 
-    // On 429, do NOT stamp a new cooldown — original stamp is fine
-    // On abort/timeout — cooldown already stamped
     const fallback = computeFallbackDirective(input);
-    // Cache the fallback too, to avoid hammering on retry
     writeCache(hash, fallback);
     return { directive: fallback, error: message };
   }

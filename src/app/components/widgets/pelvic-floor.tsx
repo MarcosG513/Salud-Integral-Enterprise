@@ -63,7 +63,9 @@ export function PelvicFloor() {
             <h3 style={{ fontWeight: 600, fontSize: "0.85rem" }}>Suelo Pélvico</h3>
           </div>
           {isDoreyCompliant && (
-            <Flame className="size-4 text-[#39FF14] animate-pulse" title="Cumplimiento Semanal Alcanzado" />
+            <span title="Cumplimiento Semanal Alcanzado">
+              <Flame className="size-4 text-[#39FF14] animate-pulse" />
+            </span>
           )}
         </div>
 
