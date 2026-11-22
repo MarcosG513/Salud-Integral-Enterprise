@@ -77,53 +77,53 @@ export function SupplementChronoWidget({ className = "" }: { className?: string 
 
   return (
     <div
-      className={`rounded-2xl border border-[#1E293B] bg-white/[0.03] p-5 backdrop-blur-xl flex flex-col justify-between ${className}`}
+      className={`rounded-3xl border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/50 flex flex-col justify-between ${className}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
-        <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
-          <Timer size={14} className="text-[#00F0FF]" /> Cronómetro de Suplementos
+        <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+          <Timer size={16} className="text-indigo-500" /> Cronómetro de Suplementos
         </h3>
-        <span className="font-mono text-xs text-slate-500 font-bold uppercase text-[#00F0FF]">
+        <span className="font-mono text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 font-bold uppercase px-2.5 py-0.5 rounded-full">
           CUENTA REGRESIVA
         </span>
       </div>
 
       {/* Countdown & Next compound display */}
-      <div className="my-3 text-center bg-black/30 p-3 rounded-xl border border-[#1E293B]">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-[#00F0FF]/5 border border-[#00F0FF]/30 font-mono text-2xl font-bold text-[#00F0FF] shadow-[0_0_12px_rgba(0,240,255,0.15)]">
-          <Zap size={16} className="text-[#39FF14] animate-pulse" />
+      <div className="my-3 text-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-white border border-slate-200 font-mono text-2xl font-black text-slate-900 shadow-xs">
+          <Zap size={16} className="text-amber-500 animate-pulse" />
           {pendingCompound ? `${mm}:${ss}` : "00:00"}
         </div>
 
         <div className="mt-2 text-xs font-mono">
           {pendingCompound ? (
-            <span className="text-slate-300 font-medium">
-              <span className="text-slate-500 uppercase tracking-widest font-semibold block text-[10px] mb-0.5">
+            <div className="text-slate-800 font-medium">
+              <span className="text-slate-500 uppercase tracking-widest font-bold block text-[10px] mb-0.5">
                 SIGUIENTE VÍA CRÍTICA:
               </span>
-              <span className="text-[#00F0FF] font-bold">{pendingCompound.name.toUpperCase()}</span>
+              <span className="text-indigo-700 font-extrabold text-xs">{pendingCompound.name.toUpperCase()}</span>
               {" "}
-              <span className="text-[#39FF14] font-bold">[{nextRealDose}]</span>
-            </span>
+              <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-bold text-[10px]">[{nextRealDose}]</span>
+            </div>
           ) : (
-            <span className="text-[#39FF14] font-bold flex items-center justify-center gap-1">
-              <CheckCircle2 size={13} /> STACK DIARIO COMPLETADO (100%)
+            <span className="text-emerald-700 font-bold flex items-center justify-center gap-1.5">
+              <CheckCircle2 size={15} className="text-emerald-600" /> STACK DIARIO COMPLETADO (100%)
             </span>
           )}
         </div>
       </div>
 
       {/* Stack stats counter */}
-      <div className="flex items-center justify-between font-mono text-[10px] text-slate-500 mb-2 px-1">
+      <div className="flex items-center justify-between font-mono text-[10px] text-slate-500 mb-2 px-1 font-bold">
         <span>CUMPLIMIENTO DIARIO:</span>
-        <span className="font-bold text-[#39FF14]">
+        <span className="font-extrabold text-emerald-700">
           {completedCount} / {supplements.length} ({Math.round((completedCount / supplements.length) * 100)}%)
         </span>
       </div>
 
       {/* Synchronized Supplement Checklist */}
-      <div className="space-y-1.5 bg-black/40 p-2.5 rounded-xl border border-[#1E293B] text-[10px] max-h-[220px] overflow-y-auto">
+      <div className="space-y-1.5 bg-slate-50/70 p-2.5 rounded-2xl border border-slate-100 text-xs max-h-[220px] overflow-y-auto">
         {supplements.map((compound) => {
           const isCompleted = !!supplementChecklist[compound.id];
           const custom = customSupplementDose[compound.id];
@@ -133,55 +133,54 @@ export function SupplementChronoWidget({ className = "" }: { className?: string 
           return (
             <div
               key={`chrono-sup-${compound.id}`}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${
                 isCompleted
-                  ? "bg-[#39FF14]/10 border-[#39FF14]/30 text-slate-200"
-                  : "bg-black/20 border-[#1E293B] text-slate-400 hover:border-slate-700"
+                  ? "bg-emerald-50/70 border-emerald-200/80 text-emerald-950"
+                  : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300"
               }`}
             >
               <div className="flex items-center gap-2 flex-wrap min-w-0 pr-2">
                 <span
-                  className="font-mono font-bold text-[9px] px-1.5 py-0.5 rounded border"
-                  style={{
-                    borderColor: isCompleted ? "rgba(57,255,20,0.4)" : "#334155",
-                    color: isCompleted ? "#39FF14" : "#94A3B8",
-                    background: isCompleted ? "rgba(57,255,20,0.1)" : "rgba(15,23,42,0.6)",
-                  }}
+                  className={`font-mono font-bold text-[9px] px-1.5 py-0.5 rounded border ${
+                    isCompleted
+                      ? "border-emerald-300 bg-emerald-100 text-emerald-800"
+                      : "border-slate-200 bg-slate-100 text-slate-600"
+                  }`}
                 >
                   {compound.abbr}
                 </span>
 
-                <span className="font-mono font-semibold text-slate-200 text-[11px] truncate max-w-[180px] sm:max-w-none">
+                <span className="font-medium text-slate-800 text-xs truncate max-w-[160px] sm:max-w-none">
                   {compound.name}
                 </span>
 
-                <span className="font-mono text-[10px] text-[#00F0FF] font-medium">
+                <span className="font-mono text-[10px] text-slate-500 font-semibold">
                   ({realDose})
                 </span>
 
-                {/* ATO AI Recommendation Glowing Badge */}
+                {/* ATO AI Recommendation Badge */}
                 {isAtoRecommended && (
                   <span
-                    className="inline-flex items-center gap-1 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-[#00F0FF]/60 bg-[#00F0FF]/15 text-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.4)] animate-pulse"
+                    className="inline-flex items-center gap-1 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 shadow-2xs"
                     title="Recomendación activa en Directiva ATO AI"
                   >
-                    <Sparkles size={8} className="text-[#39FF14]" />
-                    🤖 ATO Recomendado
+                    <Sparkles size={8} className="text-amber-600" />
+                    ATO Recomendado
                   </span>
                 )}
               </div>
 
-              {/* Bi-directional Interactive Status Badge */}
+              {/* Interactive Status Badge Button */}
               <button
                 onClick={() => toggleSupplementChecked(compound.id)}
-                className={`font-mono text-[9px] font-bold px-2 py-1 rounded transition-all uppercase tracking-wider shrink-0 ${
+                className={`font-mono text-[9px] font-bold px-2.5 py-1 rounded-lg transition-all uppercase tracking-wider shrink-0 cursor-pointer spring-bounce ${
                   isCompleted
-                    ? "bg-[#39FF14]/20 border border-[#39FF14]/50 text-[#39FF14] hover:bg-[#39FF14]/30 shadow-[0_0_6px_rgba(57,255,20,0.2)]"
-                    : "bg-[#1E293B] border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-[#00F0FF]/60 hover:bg-[#00F0FF]/10"
+                    ? "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
+                    : "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 }`}
                 title={`Marcar ${compound.name} como ${isCompleted ? 'Pendiente' : 'Completado'}`}
               >
-                {isCompleted ? "✓ COMPLETADO" : "○ PENDIENTE"}
+                {isCompleted ? "✓ Hecho" : "○ Pendiente"}
               </button>
             </div>
           );

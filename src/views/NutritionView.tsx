@@ -15,13 +15,19 @@ export function NutritionView() {
   };
 
   return (
-    <div className="w-full max-w-full min-w-0 min-h-screen h-auto px-3 sm:px-6 py-4 flex flex-col gap-4 overflow-y-auto overflow-x-hidden bg-slate-50 text-slate-900">
+    <div className="w-full max-w-full min-w-0 px-3 sm:px-6 py-4 flex flex-col gap-4 bg-slate-50 text-slate-900">
       <SyncBanner />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full min-w-0 flex-1">
-        <ChronoTimeline />
-        <FoodSelectorGrid selected={selectedFoods} onToggle={toggleFood} />
-        <PortionsEngine selected={selectedFoods} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full min-w-0 flex-1">
+        <div className="lg:col-span-3 flex flex-col min-w-0">
+          <ChronoTimeline />
+        </div>
+        <div className="lg:col-span-5 flex flex-col min-w-0">
+          <FoodSelectorGrid selected={selectedFoods} onToggle={toggleFood} />
+        </div>
+        <div className="lg:col-span-4 flex flex-col min-w-0">
+          <PortionsEngine selected={selectedFoods} />
+        </div>
       </div>
 
       <AdvisorBanner />

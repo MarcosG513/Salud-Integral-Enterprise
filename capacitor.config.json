@@ -1,5 +1,15 @@
 {
   "appId": "com.saludintegral.app",
   "appName": "Salud Integral",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "hostname": "saludintegral.app",
+    "allowNavigation": []
+  },
+  "android": {
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "allowsLinkPreview": false
+  }
 }

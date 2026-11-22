@@ -1,13 +1,13 @@
-// Shared design tokens for the HPG Axis Homeostasis Monitor.
+// Shared design tokens for the HPG Axis Homeostasis Monitor (Clean & Vibrant Bento)
 export const COLORS = {
-  obsidian: "#070A13",
-  surface: "#0F1322",
-  border: "#1E293B",
-  lime: "#39FF14",
-  cyan: "#00F0FF",
-  crimson: "#FF4D4D",
+  obsidian: "#0F172A",
+  surface: "#FFFFFF",
+  border: "#E2E8F0",
+  lime: "#10B981",     // Emerald for nominal / optimum
+  cyan: "#0284C7",     // Sky-600 for high-contrast accents
+  crimson: "#EF4444",  // Rose-500 for critical / RED-S suppression
   textDim: "#64748B",
-  textMute: "#94A3B8",
+  textMute: "#475569",
 } as const;
 
 export const mono = { fontFamily: "'JetBrains Mono', 'Roboto Mono', monospace" };

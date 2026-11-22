@@ -23,7 +23,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ active, setActive }: SidebarNavProps) {
   return (
-    <aside className="flex w-full md:w-20 md:h-full shrink-0 flex-row md:flex-col items-center justify-between md:justify-start gap-3 md:gap-8 border-b md:border-b-0 md:border-r border-slate-200/80 bg-white/90 px-4 py-2.5 md:py-8 backdrop-blur-xl z-50 shadow-sm">
+    <aside className="flex w-full md:w-20 md:h-screen md:fixed md:inset-y-0 md:left-0 shrink-0 flex-row md:flex-col items-center justify-between md:justify-start gap-3 md:gap-8 border-b md:border-b-0 md:border-r border-slate-200/80 bg-white/90 px-4 py-2.5 md:py-8 backdrop-blur-xl z-50 shadow-sm">
       {/* Brand mark */}
       <div
         className="flex size-10 md:size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shrink-0 shadow-lg shadow-rose-500/30 spring-bounce"
@@ -60,8 +60,8 @@ export function SidebarNav({ active, setActive }: SidebarNavProps) {
         title="Perfil del Operador"
         className={`size-8 sm:size-9 rounded-full border flex items-center justify-center transition-all shrink-0 min-h-[36px] ${
           active === "profile"
-            ? "border-[#00F0FF] bg-[#00F0FF]/15 text-[#00F0FF] shadow-[0_0_12px_rgba(0,240,255,0.28)]"
-            : "border-[#1E293B] bg-white/[0.03] text-slate-500 hover:border-slate-500 hover:text-slate-200"
+            ? "border-rose-500 bg-rose-50 text-rose-600 shadow-sm"
+            : "border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-800"
         }`}
       >
         <User className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />

@@ -1,147 +1,202 @@
-import { AlertTriangle } from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer, ReferenceLine, YAxis, Tooltip } from "recharts";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  ReferenceLine,
+  YAxis,
+  Tooltip,
+} from "recharts";
 import { useClinicalEngine } from "../../context/clinical-engine-context";
 import { GlassCard } from "./GlassCard";
-import { COLORS, mono } from "./tokens";
+import { mono } from "./tokens";
 import { GlossaryTooltip } from "../../app/components/widgets/ClinicalGlossary";
 
 interface EnergyAvailabilityPanelProps {
-  ea: number;
-  onEaChange: (v: number) => void;
+  ea?: number;
 }
 
-// 7-day EA trend, last point tracks the live slider.
 function buildTrend(current: number) {
-  const base = [41, 38, 36, 33, 31, 29];
+  const base = [38, 36, 35, 34, 33, 32];
   return [...base, current].map((v, i) => ({ day: `D${i + 1}`, ea: v }));
 }
 
-export function EnergyAvailabilityPanel({ ea, onEaChange }: EnergyAvailabilityPanelProps) {
+export function EnergyAvailabilityPanel({ ea: propEa }: EnergyAvailabilityPanelProps) {
   const { profile, metrics } = useClinicalEngine();
 
-  const suppressed = ea < 30;
-  const liveLipids = metrics.macros.fat;
-  const lipidFloor = (metrics.trendWeight * 0.6).toFixed(1); // 0.6 g/kg hard clamp floor
-  const eaColor = suppressed ? COLORS.crimson : ea < 35 ? COLORS.cyan : COLORS.lime;
+  const ea = propEa ?? metrics.energyAvailability;
+  const shield = metrics.endocrineShield;
+  const eaThreshold = shield?.eaThreshold ?? (profile.sexoBiologico === "female" ? 30 : 25);
+  const suppressed = Boolean(metrics.isREDSTriggered);
+  const liveLipids = metrics.totalMacros?.fat ?? metrics.macros.fat;
+  const lipidFloor = shield?.fatFloorGrams ?? Number((metrics.trendWeight * 0.6).toFixed(1));
+  const carbFloor = shield?.carbFloorGrams ?? Math.round(metrics.trendWeight * 2);
+  const eaColor = suppressed ? "#F43F5E" : ea < eaThreshold + 5 ? "#0284C7" : "#10B981";
 
   return (
-    <GlassCard 
+    <GlassCard
       title={
         <span className="flex items-center">
           Disponibilidad Energética
           <GlossaryTooltip term="EA" />
           <span className="mx-1">·</span>
-          Piso Androgénico
+          Diagnóstico Solo Lectura
         </span>
-      } 
-      code="EA//ANDRO-01" 
+      }
+      code="EA//IOC-2023"
       accent={eaColor}
     >
-      <div className="flex h-full flex-col gap-4">
-        {/* Lipid hard clamp */}
-        <div
-          className="rounded-lg p-3"
-          style={{ background: "rgba(7,10,19,0.6)", border: `1px solid ${COLORS.border}` }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="uppercase text-xs tracking-[0.14em]" style={{ color: COLORS.textDim }}>
-              Cierre Graso de 0.6 g/kg
+      <div className="flex h-full flex-col gap-4 text-left">
+        {/* Pisos Protegidos Simultáneos (Lípidos + Carbohidratos) */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="uppercase text-xs tracking-[0.12em] font-mono font-bold text-slate-600">
+              Escudo Endocrino Simultáneo
             </span>
-            <span style={{ ...mono, color: COLORS.lime, fontSize: 11 }}>
-              {metrics.isHardClampActive ? "CIERRE ACTIVO" : "PROTEGIDO"}
+            <span
+              className={`px-2.5 py-0.5 rounded-full font-mono text-xs font-bold border ${
+                metrics.isHardClampActive || suppressed
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+              }`}
+            >
+              {suppressed ? "COMPENSANDO" : "PROTEGIDO"}
             </span>
           </div>
-          <div className="mt-2 flex justify-between items-end gap-2">
-            <div>
-              <span style={{ ...mono, color: "#E2E8F0", fontSize: 26, lineHeight: 1 }}>{liveLipids}</span>
-              <span style={{ ...mono, color: COLORS.textDim, fontSize: 11, marginLeft: 2 }}>g lípidos / día</span>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="rounded-xl bg-white border border-slate-200/80 p-2.5">
+              <div className="text-[10px] font-mono uppercase text-slate-500 font-bold">
+                Piso Lípidos (0.6 g/kg)
+              </div>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span style={{ ...mono }} className="font-mono text-lg font-black text-slate-900">
+                  {liveLipids}g
+                </span>
+                <span className="font-mono text-[11px] text-sky-700 font-semibold">
+                  (mín {lipidFloor}g)
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <span style={{ ...mono, color: COLORS.textDim, fontSize: 10 }}>mínimo: </span>
-              <span style={{ ...mono, color: COLORS.cyan, fontSize: 13, fontWeight: "bold" }}>{lipidFloor}g</span>
+
+            <div className="rounded-xl bg-white border border-slate-200/80 p-2.5">
+              <div className="text-[10px] font-mono uppercase text-slate-500 font-bold">
+                Piso Glúcidos Seguro
+              </div>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span style={{ ...mono }} className="font-mono text-lg font-black text-slate-900">
+                  {metrics.totalMacros?.carbs ?? metrics.macros.carbs}g
+                </span>
+                <span className="font-mono text-[11px] text-emerald-700 font-semibold">
+                  (mín {carbFloor}g)
+                </span>
+              </div>
             </div>
           </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full" style={{ background: COLORS.border }}>
-            <div 
-              className="h-full rounded-full" 
-              style={{ 
-                width: `${Math.min(100, (liveLipids / Number(lipidFloor)) * 100)}%`, 
-                background: COLORS.lime, 
-                boxShadow: `0 0 10px ${COLORS.lime}` 
-              }} 
-            />
-          </div>
-          <p className="mt-1 text-xs font-mono leading-normal" style={{ color: COLORS.textDim }}>
-            Sustrato de síntesis de testosterona asegurado · precursor de colesterol mantenido
+
+          <p className="text-xs font-mono leading-relaxed text-slate-600 font-medium">
+            {shield?.advisoryMessage ||
+              "Sustrato lipídico y glucídico protegido automáticamente (nunca comprimido a 0g)."}
           </p>
         </div>
 
-        {/* EA trend graph */}
+        {/* Gráfica EA Solo Lectura */}
         <div className="flex flex-col">
-          <div className="mb-1 flex items-center justify-between">
-            <span className="uppercase text-xs tracking-[0.14em]" style={{ color: COLORS.textDim }}>
-              Disponibilidad Energética (kcal/kg FFM/día)
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <span className="uppercase text-xs tracking-[0.12em] font-mono font-bold text-slate-600">
+              EA Actual (Umbral {eaThreshold} kcal/kg FFM)
             </span>
-            <span style={{ ...mono, color: eaColor, fontSize: 13, fontWeight: "bold" }}>{ea.toFixed(1)} kcal</span>
+            <span
+              className="font-mono text-xs font-extrabold px-2.5 py-0.5 rounded-lg border whitespace-nowrap"
+              style={{
+                color: eaColor,
+                backgroundColor: suppressed
+                  ? "#FFF1F2"
+                  : ea < eaThreshold + 5
+                  ? "#F0F9FF"
+                  : "#ECFDF5",
+                borderColor: suppressed
+                  ? "#FECDD3"
+                  : ea < eaThreshold + 5
+                  ? "#BAE6FD"
+                  : "#A7F3D0",
+              }}
+            >
+              {ea.toFixed(1)} kcal
+            </span>
           </div>
-          <div className="h-28 w-full">
+
+          <div className="h-32 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={buildTrend(ea)} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="eaFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={eaColor} stopOpacity={0.5} />
-                    <stop offset="100%" stopColor={eaColor} stopOpacity={0} />
+              <AreaChart
+                data={buildTrend(ea)}
+                margin={{ top: 6, right: 6, left: 0, bottom: 0 }}
+              >
+                <defs key="ea-defs">
+                  <linearGradient id="eaFill" x1="0" y1="0" x2="0" y2="1" key="ea-grad">
+                    <stop offset="0%" stopColor={eaColor} stopOpacity={0.35} />
+                    <stop offset="100%" stopColor={eaColor} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <YAxis domain={[20, 45]} hide />
+                <YAxis key="ea-yaxis" domain={[15, 50]} hide />
                 <Tooltip
-                  contentStyle={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 8, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
-                  labelStyle={{ color: COLORS.textMute }}
+                  key="ea-tooltip"
+                  contentStyle={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 12,
+                    color: "#0F172A",
+                    fontWeight: 700,
+                  }}
+                  labelStyle={{ color: "#64748B", fontWeight: 600 }}
                   itemStyle={{ color: eaColor }}
                 />
-                <ReferenceLine y={30} stroke={COLORS.crimson} strokeDasharray="4 4" strokeOpacity={0.7} />
-                <Area type="monotone" dataKey="ea" stroke={eaColor} strokeWidth={2} fill="url(#eaFill)" dot={{ r: 2, fill: eaColor }} />
+                <ReferenceLine
+                  key="ea-refline"
+                  y={eaThreshold}
+                  stroke="#F43F5E"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.85}
+                />
+                <Area
+                  key="ea-area"
+                  type="monotone"
+                  dataKey="ea"
+                  stroke={eaColor}
+                  strokeWidth={2.5}
+                  fill="url(#eaFill)"
+                  dot={{ r: 3, fill: eaColor }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Interactive EA control */}
-          <div className="mt-3">
-            <input
-              type="range"
-              min={20}
-              max={45}
-              value={ea}
-              onChange={(e) => onEaChange(Number(e.target.value))}
-              className="h-1 w-full cursor-pointer appearance-none rounded-full"
-              style={{ accentColor: eaColor, background: COLORS.border }}
-            />
-            <div className="mt-1 flex justify-between" style={{ ...mono, color: COLORS.textDim, fontSize: 9 }}>
-              <span style={{ color: COLORS.crimson }}>20 · REPRESIÓN</span>
-              <span style={{ color: COLORS.cyan }}>30 · UMBRAL</span>
-              <span style={{ color: COLORS.lime }}>45 · ÓPTIMO</span>
-            </div>
-          </div>
         </div>
 
-        {/* Suppression alert */}
-        {suppressed && (
-          <div
-            className="flex items-start gap-2 rounded-lg p-3"
-            style={{ background: "rgba(255,77,77,0.1)", border: `1px solid ${COLORS.crimson}`, animation: "hpgFlash 1.1s ease-in-out infinite" }}
-          >
-            <AlertTriangle size={16} color={COLORS.crimson} className="mt-0.5 shrink-0" />
-            <span style={{ ...mono, color: COLORS.crimson, fontSize: 10, lineHeight: 1.5 }} className="flex items-center flex-wrap">
-              REPRESIÓN DEL EJE HPG DETECTADA: Pulsos de LH/FSH Inhibidos debido a Baja Disponibilidad Energética Crónica (&lt;30 kcal/kg 
-              <span className="mx-1 flex items-center">
+        {/* Estado IOC 2023 */}
+        {suppressed ? (
+          <div className="flex items-start gap-2.5 rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900 shadow-xs mt-auto">
+            <AlertTriangle size={18} className="text-rose-600 mt-0.5 shrink-0" />
+            <span className="font-mono text-xs leading-relaxed font-semibold flex items-center flex-wrap text-rose-800">
+              ESCUDO IOC 2023 ACTIVO: Baja disponibilidad sostenida (&lt;{eaThreshold} kcal/kg{" "}
+              <span className="mx-1 inline-flex items-center text-slate-900 font-bold">
                 FFM
                 <GlossaryTooltip term="FFM" />
               </span>
-              /día)
-              <span className="ml-1.5 flex items-center text-white bg-red-900/60 px-1 rounded">
+              /día). Compensado automáticamente con +calorías o reducción de volumen.
+              <span className="ml-1.5 inline-flex items-center text-rose-800 bg-rose-100 border border-rose-300 px-1.5 py-0.5 rounded-lg font-bold">
                 RED-S
                 <GlossaryTooltip term="RED-S" />
               </span>
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 rounded-2xl p-3 bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-xs font-medium mt-auto">
+            <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+            <span>
+              Disponibilidad energética estable (&ge;{eaThreshold} kcal/kg FFM/día) calculada autónomamente en segundo plano.
             </span>
           </div>
         )}
@@ -149,3 +204,5 @@ export function EnergyAvailabilityPanel({ ea, onEaChange }: EnergyAvailabilityPa
     </GlassCard>
   );
 }
+
+export default EnergyAvailabilityPanel;

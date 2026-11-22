@@ -1,10 +1,10 @@
 export const COLORS = {
-  space: "#070A13",
-  surface: "#0F1322",
-  border: "#1E293B",
-  cyan: "#00F0FF",
-  purple: "#A855F7",
-  crimson: "#FF4D4D",
+  space: "#F8FAFC",
+  surface: "#FFFFFF",
+  border: "#E2E8F0",
+  cyan: "#0284C7",
+  purple: "#8B5CF6",
+  crimson: "#F43F5E",
 };
 
 export type MesoWeek = {
@@ -16,11 +16,11 @@ export type MesoWeek = {
 };
 
 export const MESOCYCLE: MesoWeek[] = [
-  { index: 1, label: "Semana 1", phase: "Introducción al MEV", rirTarget: "RIR 3", intensityPct: 68 },
+  { index: 1, label: "Semana 1", phase: "Introducción al MEV", rirTarget: "RIR 2–3", intensityPct: 68 },
   { index: 2, label: "Semana 2", phase: "Acumulación MAV-1", rirTarget: "RIR 2", intensityPct: 74 },
-  { index: 3, label: "Semana 3", phase: "Fase de Estímulo Pico MAV-2", rirTarget: "RIR 1", intensityPct: 82 },
-  { index: 4, label: "Semana 4", phase: "Sobrecarga Límite MRV", rirTarget: "RIR 0 · Al Fallo", intensityPct: 91 },
-  { index: 5, label: "Semana 5", phase: "Descarga / Resensibilización", rirTarget: "RIR 4", intensityPct: 52 },
+  { index: 3, label: "Semana 3", phase: "Acumulación MAV-2", rirTarget: "RIR 1–2", intensityPct: 80 },
+  { index: 4, label: "Semana 4", phase: "Estímulo Alto MAV/MRV", rirTarget: "RIR 0–2 (0 aislamiento)", intensityPct: 86 },
+  { index: 5, label: "Semana 5", phase: "Descarga / Mantenimiento MV", rirTarget: "RIR 3–4", intensityPct: 60 },
 ];
 
 export type MuscleGroup = {

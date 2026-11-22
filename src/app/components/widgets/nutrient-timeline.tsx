@@ -5,7 +5,6 @@ export function NutrientTimeline() {
   const { metrics } = useClinicalEngine();
   const targetCalories = metrics.targetCalories;
 
-  // Baseline percentages for Cortisol Mitigation Protocol (sum to 100%)
   const MEALS_CONFIG = [
     {
       id: "breakfast",
@@ -22,7 +21,7 @@ export function NutrientTimeline() {
         "Arándanos 100g",
         `Huevos x${eggs}`,
       ],
-      accent: "#39FF14",
+      accent: "#10B981",
     },
     {
       id: "lunch",
@@ -38,7 +37,7 @@ export function NutrientTimeline() {
         `Arroz basmati ${rice}g`,
         "Aguacate 50g",
       ],
-      accent: "#00F0FF",
+      accent: "#0284C7",
     },
     {
       id: "postworkout",
@@ -51,10 +50,10 @@ export function NutrientTimeline() {
       baseProtein: 35,
       itemsTemplate: (dextrose: number, protein: number) => [
         `Dextrosa ${dextrose}g`,
-        `Proteína hidrolizada ${protein}g`,
-        "Creatina 5g",
+        `Proteína de suero ${protein}g`,
+        "Creatina 3–5g",
       ],
-      accent: "#A855F7",
+      accent: "#8B5CF6",
     },
     {
       id: "dinner",
@@ -70,28 +69,24 @@ export function NutrientTimeline() {
         `Camote ${potato}g`,
         "Brócoli 120g",
       ],
-      accent: "#39FF14",
+      accent: "#06B6D4",
     },
   ];
 
-  // Scale factor based on reference 2800 kcal
   const scale = targetCalories / 2800;
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-[#1E293B] bg-white/[0.03] p-6 backdrop-blur-xl">
+    <div className="flex h-full flex-col rounded-3xl border border-slate-100 bg-white p-6 shadow-sm text-slate-900">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+          <h3 className="font-bold text-sm sm:text-base text-slate-900">
             Cronología de Sincronización de Nutrientes
           </h3>
-          <span className="text-slate-500" style={{ fontSize: "0.72rem" }}>
-            Protocolo de Mitigación de Cortisol · 4 comidas
+          <span className="text-slate-600 text-xs">
+            Protocolo de distribución cada 3–4 h · 4 comidas
           </span>
         </div>
-        <span
-          className="rounded-md bg-[#00F0FF]/10 px-2 py-0.5 text-[#00F0FF]"
-          style={{ fontSize: "0.65rem", fontWeight: 600 }}
-        >
+        <span className="rounded-full bg-sky-50 border border-sky-200 px-2.5 py-0.5 text-sky-700 text-[11px] font-bold font-mono">
           ADAPTATIVO
         </span>
       </div>
@@ -100,75 +95,73 @@ export function NutrientTimeline() {
         {MEALS_CONFIG.map((meal) => {
           const Icon = meal.icon;
           const TagIcon = meal.tagIcon;
-          
-          // Calculate dynamic kcal for this meal
           const mealKcal = Math.round(targetCalories * (meal.pct / 100));
 
-          // Generate dynamic items list scaled to calorie target
           let items: string[] = [];
           if (meal.id === "breakfast") {
-            const oats = Math.round(meal.baseOats * scale);
-            const eggs = Math.max(1, Math.round(meal.baseEggs * scale));
-            items = meal.itemsTemplate(oats, eggs);
+            items = meal.itemsTemplate(
+              Math.round((meal.baseOats ?? 90) * scale),
+              Math.max(1, Math.round((meal.baseEggs ?? 3) * scale))
+            );
           } else if (meal.id === "lunch") {
-            const chicken = Math.round(meal.baseChicken * scale);
-            const rice = Math.round(meal.baseRice * scale);
-            items = meal.itemsTemplate(chicken, rice);
+            items = meal.itemsTemplate(
+              Math.round((meal.baseChicken ?? 220) * scale),
+              Math.round((meal.baseRice ?? 120) * scale)
+            );
           } else if (meal.id === "postworkout") {
-            const dextrose = Math.round(meal.baseDextrose * scale);
-            const protein = Math.round(meal.baseProtein * scale);
-            items = meal.itemsTemplate(dextrose, protein);
+            items = meal.itemsTemplate(
+              Math.round((meal.baseDextrose ?? 45) * scale),
+              Math.round((meal.baseProtein ?? 35) * scale)
+            );
           } else if (meal.id === "dinner") {
-            const salmon = Math.round(meal.baseSalmon * scale);
-            const potato = Math.round(meal.basePotato * scale);
-            items = meal.itemsTemplate(salmon, potato);
+            items = meal.itemsTemplate(
+              Math.round((meal.baseSalmon ?? 180) * scale),
+              Math.round((meal.basePotato ?? 150) * scale)
+            );
           }
 
           return (
             <div
               key={`meal-${meal.id}`}
-              className="flex flex-col rounded-xl border border-[#1E293B] bg-black/25 p-4"
+              className="flex flex-col rounded-2xl border border-slate-200/80 bg-slate-50 p-4"
             >
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
-                    className="flex size-8 items-center justify-center rounded-lg"
+                    className="flex size-8 items-center justify-center rounded-xl"
                     style={{
-                      background: `${meal.accent}18`,
+                      background: `${meal.accent}15`,
                       color: meal.accent,
                     }}
                   >
                     <Icon className="size-4" />
                   </span>
-                  <span className="text-slate-200" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
-                    {meal.name}
-                  </span>
+                  <span className="text-slate-900 text-xs font-bold">{meal.name}</span>
                 </div>
                 <span
-                  className="tabular-nums"
-                  style={{ color: meal.accent, fontWeight: 700, fontSize: "0.9rem" }}
+                  className="tabular-nums font-mono font-bold text-sm"
+                  style={{ color: meal.accent }}
                 >
                   {meal.pct}%
                 </span>
               </div>
 
-              <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-[#1E293B]">
+              <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
-                  className="h-full rounded-full animate-all duration-500"
+                  className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${meal.pct}%`,
                     background: meal.accent,
-                    boxShadow: `0 0 8px ${meal.accent}`,
                   }}
                 />
               </div>
 
-              <div className="mb-3 flex items-center gap-1.5 text-slate-500">
+              <div className="mb-2 flex items-center gap-1.5 text-slate-600 text-[11px]">
                 <TagIcon className="size-3" />
-                <span style={{ fontSize: "0.65rem" }}>{meal.tag}</span>
+                <span>{meal.tag}</span>
               </div>
 
-              <div className="mb-3 tabular-nums text-slate-300 font-bold" style={{ fontSize: "0.72rem" }}>
+              <div className="mb-3 tabular-nums text-slate-900 font-bold text-xs font-mono">
                 {mealKcal.toLocaleString()} kcal
               </div>
 
@@ -176,14 +169,9 @@ export function NutrientTimeline() {
                 {items.map((item, idx) => (
                   <li
                     key={`item-${meal.id}-${idx}`}
-                    className="flex items-center gap-1.5 text-slate-400"
-                    style={{ fontSize: "0.68rem" }}
+                    className="flex items-center gap-1.5 text-slate-600 text-xs"
                   >
-                    <span
-                      className="size-1 rounded-full"
-                      style={{ background: meal.accent }}
-                    />
-                    {item}
+                    <span className="text-slate-400">•</span> {item}
                   </li>
                 ))}
               </ul>

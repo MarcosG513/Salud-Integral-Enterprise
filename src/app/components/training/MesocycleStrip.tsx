@@ -13,23 +13,23 @@ export function MesocycleStrip({ activeWeek, onSelect }: Props) {
   const progress = ((activeWeek - 1) / (MESOCYCLE.length - 1)) * 100;
 
   return (
-    <div className="rounded-md border border-[#1E293B] bg-[#0F1322]/80 backdrop-blur-xl p-4 sm:px-6 sm:py-4 w-full max-w-full min-w-0 flex flex-col gap-2">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2 w-full min-w-0">
+    <div className="rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-200/40 p-5 sm:px-6 sm:py-5 w-full max-w-full min-w-0 flex flex-col gap-3 text-slate-900">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-1 w-full min-w-0">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0 flex-1">
-          <span className="text-xs tracking-[0.20em] text-[#00F0FF] font-mono uppercase shrink-0 font-bold">
+          <span className="text-xs tracking-[0.20em] text-slate-900 font-mono uppercase shrink-0 font-extrabold">
             Mesociclo
           </span>
-          <p className="text-xs sm:text-sm text-slate-300 break-words line-clamp-2 min-w-0">
+          <p className="text-xs sm:text-sm text-slate-600 font-medium break-words line-clamp-2 min-w-0">
             Bloque de 5 Semanas · Empuje/Tracción/Piernas
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto min-w-0 justify-start sm:justify-end">
-          <span className="text-slate-400 text-xs sm:text-sm shrink-0 font-mono">{activeWeekInfo.label}:</span>
-          <span className="text-[#A855F7] text-xs sm:text-sm font-semibold truncate max-w-full">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0 justify-start sm:justify-end">
+          <span className="text-slate-500 text-xs sm:text-sm shrink-0 font-mono font-semibold">{activeWeekInfo.label}:</span>
+          <span className="text-purple-700 text-xs sm:text-sm font-bold truncate max-w-full">
             {activeWeek === activeWeekInfo.index ? "Fase de " + metrics.training.phaseName : activeWeekInfo.phase}
           </span>
-          <div className="flex items-center gap-1 bg-[#00F0FF]/10 border border-[#00F0FF]/30 px-2 py-0.5 rounded shrink-0">
-            <span className="font-mono text-[#00F0FF] tracking-wider text-xs sm:text-sm font-bold">
+          <div className="flex items-center gap-1 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-lg shrink-0 shadow-xs">
+            <span className="font-mono text-sky-700 tracking-wider text-xs sm:text-sm font-extrabold">
               {activeWeek === activeWeekInfo.index ? metrics.training.intensity : activeWeekInfo.rirTarget}
             </span>
           </div>
@@ -37,11 +37,11 @@ export function MesocycleStrip({ activeWeek, onSelect }: Props) {
       </div>
 
       {/* Timeline track */}
-      <div className="relative w-full overflow-x-auto scrollbar-none py-1">
+      <div className="relative w-full overflow-x-auto scrollbar-none py-2">
         <div className="relative min-w-[300px]">
-          <div className="absolute top-1/2 left-0 right-0 h-px bg-[#1E293B]" />
+          <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-100 -translate-y-1/2 rounded-full" />
           <div
-            className="absolute top-1/2 left-0 h-px bg-gradient-to-r from-[#00F0FF] to-[#A855F7]"
+            className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-sky-500 to-purple-500 -translate-y-1/2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
           <div className="relative flex justify-between">
@@ -52,31 +52,28 @@ export function MesocycleStrip({ activeWeek, onSelect }: Props) {
                 <button
                   key={`meso-week-${w.index}`}
                   onClick={() => onSelect(w.index)}
-                  className="group flex flex-col items-center gap-2 focus:outline-none min-h-[40px] px-1"
+                  className="group flex flex-col items-center gap-2 focus:outline-none min-h-[44px] px-2"
                 >
                   <span
-                    className={[
-                      "font-mono text-xs tracking-widest uppercase transition-colors",
-                      isActive ? "text-[#00F0FF]" : isPast ? "text-slate-400" : "text-slate-600",
-                    ].join(" ")}
+                    className={`font-mono text-xs tracking-widest uppercase transition-colors font-bold ${
+                      isActive ? "text-sky-700 font-black" : isPast ? "text-slate-600" : "text-slate-400"
+                    }`}
                   >
                     S{w.index}
                   </span>
                   <span
-                    className={[
-                      "size-3 rounded-full border transition-all",
+                    className={`rounded-full transition-all ${
                       isActive
-                        ? "bg-[#00F0FF] border-[#00F0FF] shadow-[0_0_12px_2px_rgba(0,240,255,0.6)]"
+                        ? "size-4 bg-sky-600 border-2 border-white ring-2 ring-sky-500 shadow-md"
                         : isPast
-                        ? "bg-[#A855F7]/70 border-[#A855F7]/70"
-                        : "bg-[#0F1322] border-[#1E293B] group-hover:border-slate-500",
-                    ].join(" ")}
+                        ? "size-3.5 bg-purple-200 border-2 border-purple-400"
+                        : "size-3.5 bg-slate-100 border-2 border-slate-300 group-hover:border-slate-400"
+                    }`}
                   />
                   <span
-                    className={[
-                      "font-mono text-xs tracking-wider",
-                      isActive ? "text-slate-300" : "text-slate-600",
-                    ].join(" ")}
+                    className={`font-mono text-xs tracking-wider font-semibold ${
+                      isActive ? "text-slate-900 font-extrabold" : "text-slate-500"
+                    }`}
                   >
                     {w.intensityPct}%1RM
                   </span>

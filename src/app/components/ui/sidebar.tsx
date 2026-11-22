@@ -266,7 +266,7 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn("min-w-[44px] min-h-[44px] size-11 sm:size-9 flex items-center justify-center", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();

@@ -1,0 +1,521 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// CATÁLOGO DE EJERCICIOS AGNÓSTICO CASA / GIMNASIO Y CHEQUEO BIOMECÁNICO
+// Alineado a guías ACSM 2026 y conteo fraccionado Pelland 2026 (1.0x / 0.5x)
+// ─────────────────────────────────────────────────────────────────────────────
+
+import type { TrainingEnvironment } from "../engine/macroAllocator";
+
+export type MuscleId =
+  | "chest"
+  | "back"
+  | "quads"
+  | "hamstrings"
+  | "glutes"
+  | "front_delts"
+  | "side_delts"
+  | "rear_delts"
+  | "biceps"
+  | "triceps"
+  | "core";
+
+export interface MuscleLandmark {
+  id: MuscleId;
+  name: string;
+  mvMin: number; // Mantenimiento (descarga reactiva: 4-8)
+  mvMax: number;
+  mev: number;
+  mav: number;
+  mrv: number;
+}
+
+export const MUSCLE_LANDMARKS: MuscleLandmark[] = [
+  { id: "chest", name: "Pecho", mvMin: 4, mvMax: 6, mev: 10, mav: 16, mrv: 22 },
+  { id: "back", name: "Espalda", mvMin: 6, mvMax: 8, mev: 10, mav: 18, mrv: 24 },
+  { id: "quads", name: "Cuádriceps", mvMin: 4, mvMax: 8, mev: 10, mav: 15, mrv: 20 },
+  { id: "hamstrings", name: "Isquiotibiales", mvMin: 4, mvMax: 6, mev: 10, mav: 14, mrv: 18 },
+  { id: "glutes", name: "Glúteos", mvMin: 4, mvMax: 6, mev: 10, mav: 15, mrv: 20 },
+  { id: "front_delts", name: "Deltoide Anterior", mvMin: 4, mvMax: 6, mev: 10, mav: 14, mrv: 18 },
+  { id: "side_delts", name: "Deltoide Lateral", mvMin: 4, mvMax: 8, mev: 10, mav: 16, mrv: 22 },
+  { id: "rear_delts", name: "Deltoide Posterior", mvMin: 4, mvMax: 6, mev: 10, mav: 14, mrv: 18 },
+  { id: "biceps", name: "Bíceps", mvMin: 4, mvMax: 6, mev: 10, mav: 15, mrv: 20 },
+  { id: "triceps", name: "Tríceps", mvMin: 4, mvMax: 6, mev: 10, mav: 15, mrv: 20 },
+  { id: "core", name: "Core", mvMin: 4, mvMax: 6, mev: 8, mav: 12, mrv: 16 },
+];
+
+export type SvgCueKey = "push" | "pull" | "squat" | "hinge" | "overhead" | "isolation";
+
+export interface CatalogExercise {
+  id: string;
+  name: string;
+  pattern: string;
+  environment: TrainingEnvironment;
+  isCompound: boolean;
+  primaryMuscle: MuscleId;
+  synergistMuscles: MuscleId[];
+  defaultLoadKg: number;
+  nextProgressionCue: string;
+  svgCueKey: SvgCueKey;
+  executionCue: string;
+  slotGroup: "upper_push" | "upper_pull" | "lower_knee" | "lower_hip" | "isolation";
+}
+
+export const TRAINING_EXERCISE_CATALOG: CatalogExercise[] = [
+  // ── 1. CASA SIN EQUIPO (Peso Corporal) ────────────────────────────────────
+  {
+    id: "hb-pushups",
+    name: "Flexiones en Suelo / Déficit",
+    pattern: "Empuje Horizontal",
+    environment: "home_bodyweight",
+    isCompound: true,
+    primaryMuscle: "chest",
+    synergistMuscles: ["triceps", "front_delts"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Elevar pies (flexiones declinadas) o añadir pausa en el fondo",
+    svgCueKey: "push",
+    executionCue: "Rango completo tocando cerca del suelo y control excéntrico de 2 s sin bloqueo brusco.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "hb-inverted-row",
+    name: "Remo Invertido bajo Mesa / Barra",
+    pattern: "Tracción Horizontal",
+    environment: "home_bodyweight",
+    isCompound: true,
+    primaryMuscle: "back",
+    synergistMuscles: ["biceps", "rear_delts"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Extender piernas o elevar pies sobre silla",
+    svgCueKey: "pull",
+    executionCue: "Retracción escapular completa al subir llevando el pecho hacia el agarre.",
+    slotGroup: "upper_pull",
+  },
+  {
+    id: "hb-pike-pushup",
+    name: "Flexiones Pike (Hombro Vertical)",
+    pattern: "Empuje Vertical",
+    environment: "home_bodyweight",
+    isCompound: true,
+    primaryMuscle: "front_delts",
+    synergistMuscles: ["triceps", "chest"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Pies elevados en cajón/sofá (Pike Elevado)",
+    svgCueKey: "overhead",
+    executionCue: "Caderas altas en V invertida, desciende cabeza delante de las manos en rango completo.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "hb-bulgarian-bw",
+    name: "Sentadilla Búlgara Unilateral",
+    pattern: "Rodilla / Unilateral",
+    environment: "home_bodyweight",
+    isCompound: true,
+    primaryMuscle: "quads",
+    synergistMuscles: ["glutes", "hamstrings"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Añadir mochila lastrada o transición a Pistol Squat asistida",
+    svgCueKey: "squat",
+    executionCue: "Desciende verticalmente manteniendo el talón delantero apoyado y recorrido profundo.",
+    slotGroup: "lower_knee",
+  },
+  {
+    id: "hb-nordic-bridge",
+    name: "Puente Isquios Unilateral / Negativa Nórdica",
+    pattern: "Bisagra de Cadera",
+    environment: "home_bodyweight",
+    isCompound: true,
+    primaryMuscle: "hamstrings",
+    synergistMuscles: ["glutes"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Aumentar palanca alejando talones o fase excéntrica a 1 pierna",
+    svgCueKey: "hinge",
+    executionCue: "Extiende la cadera con fuerte contracción posterior evitando hiperextensión lumbar.",
+    slotGroup: "lower_hip",
+  },
+  {
+    id: "hb-diamond-pushup",
+    name: "Flexiones Cerradas (Tríceps)",
+    pattern: "Aislamiento Tríceps",
+    environment: "home_bodyweight",
+    isCompound: false,
+    primaryMuscle: "triceps",
+    synergistMuscles: ["chest", "front_delts"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Flexiones cerradas declinadas o extensión en barra baja",
+    svgCueKey: "isolation",
+    executionCue: "Codos pegados al torso controlando la bajada hasta rozar el suelo.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "hb-chin-towel",
+    name: "Remo Supino / Dominada Australiana Cerrada",
+    pattern: "Aislamiento Bíceps",
+    environment: "home_bodyweight",
+    isCompound: false,
+    primaryMuscle: "biceps",
+    synergistMuscles: ["back"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Aumentar inclinación corporal horizontal o pausa de 1 s arriba",
+    svgCueKey: "isolation",
+    executionCue: "Supina muñecas y focaliza la flexión de codo con tensión continua.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "hb-plank-reach",
+    name: "Plancha Dinámica con Alcance Lateral",
+    pattern: "Estabilidad Core",
+    environment: "home_bodyweight",
+    isCompound: false,
+    primaryMuscle: "core",
+    synergistMuscles: ["side_delts"],
+    defaultLoadKg: 0,
+    nextProgressionCue: "Body-saw avanzado o elevación de piernas colgado",
+    svgCueKey: "isolation",
+    executionCue: "Mantén pelvis neutra anti-rotacional en cada alcance.",
+    slotGroup: "isolation",
+  },
+
+  // ── 2. CASA CON BANDAS Y MANCUERNAS ──────────────────────────────────────
+  {
+    id: "hbd-db-press",
+    name: "Press de Pecho con Mancuernas / Banda",
+    pattern: "Empuje Horizontal",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "chest",
+    synergistMuscles: ["triceps", "front_delts"],
+    defaultLoadKg: 24,
+    nextProgressionCue: "Subir +2.5 kg por mancuerna o banda de resistencia superior",
+    svgCueKey: "push",
+    executionCue: "Estiramiento profundo abajo en rango completo y empuje controlado sin rebotes.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "hbd-row",
+    name: "Remo con Mancuerna a 1 Mano / Banda",
+    pattern: "Tracción Horizontal",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "back",
+    synergistMuscles: ["biceps", "rear_delts"],
+    defaultLoadKg: 22,
+    nextProgressionCue: "Subir carga o acortar agarre de banda elástica",
+    svgCueKey: "pull",
+    executionCue: "Lleva el codo hacia la cadera maximizando el estiramiento dorsal en la bajada.",
+    slotGroup: "upper_pull",
+  },
+  {
+    id: "hbd-ohp",
+    name: "Press Militar con Mancuernas / Banda",
+    pattern: "Empuje Vertical",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "front_delts",
+    synergistMuscles: ["triceps", "side_delts"],
+    defaultLoadKg: 18,
+    nextProgressionCue: "Subir +2 kg por mancuerna manteniendo tronco firme",
+    svgCueKey: "overhead",
+    executionCue: "Alinea muñeca y codo en trayectoria vertical completa por encima de la cabeza.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "hbd-pulldown-band",
+    name: "Jalón Vertical / Dominada Asistida con Banda",
+    pattern: "Tracción Vertical",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "back",
+    synergistMuscles: ["biceps", "rear_delts"],
+    defaultLoadKg: 25,
+    nextProgressionCue: "Cambiar a banda de mayor resistencia o añadir pausa escapular",
+    svgCueKey: "pull",
+    executionCue: "Deprime hombros y desciende codos hacia los costados con control excéntrico.",
+    slotGroup: "upper_pull",
+  },
+  {
+    id: "hbd-goblet",
+    name: "Sentadilla Goblet / Búlgara con Mancuernas",
+    pattern: "Rodilla / Sentadilla",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "quads",
+    synergistMuscles: ["glutes", "hamstrings"],
+    defaultLoadKg: 28,
+    nextProgressionCue: "Incrementar carga en mancuerna o pasar a variante unilateral lastrada",
+    svgCueKey: "squat",
+    executionCue: "Profundidad completa rompiendo el paralelo y subida explosiva controlada.",
+    slotGroup: "lower_knee",
+  },
+  {
+    id: "hbd-rdl",
+    name: "Peso Muerto Rumano con Mancuernas / Banda",
+    pattern: "Bisagra de Cadera",
+    environment: "home_bands_dumbbells",
+    isCompound: true,
+    primaryMuscle: "hamstrings",
+    synergistMuscles: ["glutes", "back"],
+    defaultLoadKg: 32,
+    nextProgressionCue: "Aumentar carga manteniendo espalda neutra y tensión en isquios",
+    svgCueKey: "hinge",
+    executionCue: "Empuja cadera atrás manteniendo mancuernas pegadas a las piernas hasta sentir estiramiento femoral.",
+    slotGroup: "lower_hip",
+  },
+  {
+    id: "hbd-lat-raise",
+    name: "Elevaciones Laterales con Mancuernas / Banda",
+    pattern: "Abducción Lateral",
+    environment: "home_bands_dumbbells",
+    isCompound: false,
+    primaryMuscle: "side_delts",
+    synergistMuscles: ["front_delts", "rear_delts"],
+    defaultLoadKg: 10,
+    nextProgressionCue: "Subir carga o usar serie en ángulo inclinado de banda (0 RIR seguro)",
+    svgCueKey: "isolation",
+    executionCue: "Lidera el movimiento desde los codos en plano escapular evitando balanceos.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "hbd-bicep-curl",
+    name: "Curl de Bíceps con Mancuernas / Banda",
+    pattern: "Flexión de Codo",
+    environment: "home_bands_dumbbells",
+    isCompound: false,
+    primaryMuscle: "biceps",
+    synergistMuscles: [],
+    defaultLoadKg: 14,
+    nextProgressionCue: "Incrementar mancuerna o pasar a curl inclinado para mayor estiramiento",
+    svgCueKey: "isolation",
+    executionCue: "Extensión completa abajo sin balanceo de hombro.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "hbd-tricep-ext",
+    name: "Extensión Copa sobre Cabeza con Mancuerna / Banda",
+    pattern: "Extensión de Codo",
+    environment: "home_bands_dumbbells",
+    isCompound: false,
+    primaryMuscle: "triceps",
+    synergistMuscles: [],
+    defaultLoadKg: 16,
+    nextProgressionCue: "Subir carga manteniendo estiramiento completo de la cabeza larga",
+    svgCueKey: "isolation",
+    executionCue: "Desciende detrás de la cabeza en rango completo antes de extender.",
+    slotGroup: "isolation",
+  },
+
+  // ── 3. GIMNASIO COMERCIAL / EQUIPO COMPLETO ──────────────────────────────
+  {
+    id: "gym-bench",
+    name: "Press de Banca con Barra",
+    pattern: "Empuje Horizontal",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "chest",
+    synergistMuscles: ["triceps", "front_delts"],
+    defaultLoadKg: 90,
+    nextProgressionCue: "Subir +2.5 kg a +5 kg en barra al completar el techo de reps",
+    svgCueKey: "push",
+    executionCue: "Retracción escapular firme, control excéntrico hasta tocar el pecho y empuje estable.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "gym-pullup",
+    name: "Dominadas Lastradas / Jalón al Pecho",
+    pattern: "Tracción Vertical",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "back",
+    synergistMuscles: ["biceps", "rear_delts"],
+    defaultLoadKg: 20,
+    nextProgressionCue: "Añadir +2.5 kg de lastre o subir 1 placa en jalón",
+    svgCueKey: "pull",
+    executionCue: "Estiramiento dorsal completo arriba y descenso controlado tras tocar pecho superior.",
+    slotGroup: "upper_pull",
+  },
+  {
+    id: "gym-squat",
+    name: "Sentadilla Trasera con Barra",
+    pattern: "Rodilla / Sentadilla",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "quads",
+    synergistMuscles: ["glutes", "hamstrings"],
+    defaultLoadKg: 105,
+    nextProgressionCue: "Subir +2.5 kg a +5 kg manteniendo profundidad consistente",
+    svgCueKey: "squat",
+    executionCue: "Bracing abdominal sólido, descenso controlado bajo el paralelo y empuje uniforme.",
+    slotGroup: "lower_knee",
+  },
+  {
+    id: "gym-rdl",
+    name: "Peso Muerto Rumano con Barra",
+    pattern: "Bisagra de Cadera",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "hamstrings",
+    synergistMuscles: ["glutes", "back"],
+    defaultLoadKg: 95,
+    nextProgressionCue: "Incrementar +5 kg manteniendo columna neutra",
+    svgCueKey: "hinge",
+    executionCue: "Bisagra pura de cadera con rodillas semibloqueadas y estiramiento profundo.",
+    slotGroup: "lower_hip",
+  },
+  {
+    id: "gym-incline-db",
+    name: "Press Inclinado con Mancuernas",
+    pattern: "Empuje Inclinado",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "chest",
+    synergistMuscles: ["front_delts", "triceps"],
+    defaultLoadKg: 34,
+    nextProgressionCue: "Subir al siguiente par de mancuernas (+2 kg c/u)",
+    svgCueKey: "push",
+    executionCue: "Banco a 30°, baja las mancuernas al costado del pecho para máximo rango.",
+    slotGroup: "upper_push",
+  },
+  {
+    id: "gym-barbell-row",
+    name: "Remo con Barra / Polea Baja Gironda",
+    pattern: "Tracción Horizontal",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "back",
+    synergistMuscles: ["biceps", "rear_delts"],
+    defaultLoadKg: 75,
+    nextProgressionCue: "Subir +2.5 kg sin impulso lumbar excesivo",
+    svgCueKey: "pull",
+    executionCue: "Aducción escapular limpia y fase excéntrica controlada.",
+    slotGroup: "upper_pull",
+  },
+  {
+    id: "gym-leg-press",
+    name: "Prensa de Piernas 45°",
+    pattern: "Rodilla / Prensa",
+    environment: "gym",
+    isCompound: true,
+    primaryMuscle: "quads",
+    synergistMuscles: ["glutes"],
+    defaultLoadKg: 180,
+    nextProgressionCue: "Añadir +5 kg a +10 kg manteniendo rango completo sin levantar glúteos",
+    svgCueKey: "squat",
+    executionCue: "Flexión profunda controlada de rodilla y cadera sin despegar sacro del respaldo.",
+    slotGroup: "lower_knee",
+  },
+  {
+    id: "gym-cable-lat",
+    name: "Elevaciones Laterales en Polea / Mancuernas",
+    pattern: "Abducción Lateral",
+    environment: "gym",
+    isCompound: false,
+    primaryMuscle: "side_delts",
+    synergistMuscles: ["rear_delts"],
+    defaultLoadKg: 12,
+    nextProgressionCue: "Subir placa/mancuerna; ejercicio seguro para acercarse a 0–1 RIR",
+    svgCueKey: "isolation",
+    executionCue: "Tensión constante desde el inicio en polea a altura de la muñeca.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "gym-ez-curl",
+    name: "Curl de Bíceps en Banco Inclinado / Barra EZ",
+    pattern: "Flexión de Codo",
+    environment: "gym",
+    isCompound: false,
+    primaryMuscle: "biceps",
+    synergistMuscles: [],
+    defaultLoadKg: 30,
+    nextProgressionCue: "Subir +2.5 kg al superar las repeticiones máximas del rango",
+    svgCueKey: "isolation",
+    executionCue: "Máximo estiramiento en el punto inferior sin adelantar los codos.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "gym-tricep-pushdown",
+    name: "Extensión de Tríceps en Polea Alta",
+    pattern: "Extensión de Codo",
+    environment: "gym",
+    isCompound: false,
+    primaryMuscle: "triceps",
+    synergistMuscles: [],
+    defaultLoadKg: 26,
+    nextProgressionCue: "Subir placa en polea; ejercicio apto para 0–1 RIR",
+    svgCueKey: "isolation",
+    executionCue: "Hombros fijos y extensión completa al final de cada repetición.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "gym-facepull",
+    name: "Face Pull en Polea con Cuerda",
+    pattern: "Rotación Externa / Posterior",
+    environment: "gym",
+    isCompound: false,
+    primaryMuscle: "rear_delts",
+    synergistMuscles: ["back"],
+    defaultLoadKg: 20,
+    nextProgressionCue: "Subir placa manteniendo rotación externa fluida",
+    svgCueKey: "isolation",
+    executionCue: "Tira de la cuerda hacia la frente rotando externamente los hombros.",
+    slotGroup: "isolation",
+  },
+  {
+    id: "gym-cable-crunch",
+    name: "Crunch en Polea Alta Arrodillado",
+    pattern: "Flexión Espinal Core",
+    environment: "gym",
+    isCompound: false,
+    primaryMuscle: "core",
+    synergistMuscles: [],
+    defaultLoadKg: 35,
+    nextProgressionCue: "Incrementar carga en polea sin flexionar únicamente desde la cadera",
+    svgCueKey: "isolation",
+    executionCue: "Enrolla la caja torácica hacia la pelvis con control excéntrico.",
+    slotGroup: "isolation",
+  },
+];
+
+// ── Chequeo Biomecánico Opcional (5 Movimientos Funcionales) ──────────────────
+export interface BiomechanicalMovementSpec {
+  id: string;
+  name: string;
+  focus: string;
+  optimalCue: string;
+  adaptationAdvice: string;
+}
+
+export const BIOMECHANICAL_MOVEMENTS: BiomechanicalMovementSpec[] = [
+  {
+    id: "deep_squat",
+    name: "1. Sentadilla Profunda",
+    focus: "Dorsiflexión de tobillo, movilidad de cadera y extensión torácica",
+    optimalCue: "Muslos bajo el paralelo con talones apoyados y torso estable sin valgo de rodilla.",
+    adaptationAdvice: "Si el talón se despega (puntuación 1–2), eleva talones con discos/cuña y trabaja dorsiflexión antes de cargar sentadilla trasera.",
+  },
+  {
+    id: "hurdle_step",
+    name: "2. Paso de Valla",
+    focus: "Estabilidad monopodal de cadera, equilibrio pélvico y control del paso",
+    optimalCue: "Paso limpio sobre la altura tibial sin inclinar la pelvis ni perder estabilidad en apoyo.",
+    adaptationAdvice: "Si hay caída lateral de cadera, incorpora progresiones unilaterales asistidas (búlgara controlada y plancha lateral).",
+  },
+  {
+    id: "inline_lunge",
+    name: "3. Zancada en Línea",
+    focus: "Movilidad del flexor de cadera, estabilidad de tobillo/rodilla en plano sagital",
+    optimalCue: "Descenso vertical sobre la misma línea manteniendo contacto posterior y tronco erguido.",
+    adaptationAdvice: "Reduce amplitud inicial o usa apoyo ligero hasta estabilizar la rodilla en zancada estática.",
+  },
+  {
+    id: "active_straight_leg_raise",
+    name: "4. Elevación Activa de Pierna Recta",
+    focus: "Extensibilidad isquiotibial activa y estabilidad pélvica lumbar",
+    optimalCue: "Pierna activa sube >= 70°–80° mientras la pierna contraria permanece extendida en el suelo.",
+    adaptationAdvice: "Limita el recorrido de Peso Muerto Rumano justo al punto donde la pelvis comience a bascular (bisagra en caja).",
+  },
+  {
+    id: "seated_rotation",
+    name: "5. Rotación Sentado",
+    focus: "Movilidad torácica bilateral para empuje/tracción sin compensación lumbar",
+    optimalCue: "Rotación fluida ~45°–50° a ambos lados sin desplazamiento de rodillas o caderas.",
+    adaptationAdvice: "Añade 2 min de rotaciones torácicas en cuadrupedia antes de sesiones de press vertical o dominadas.",
+  },
+];

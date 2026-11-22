@@ -39,16 +39,16 @@ export function SyncBanner() {
             />
           </div>
         </div>
-        <div className="flex items-baseline gap-2 rounded-sm border border-[#39FF14]/30 bg-[#39FF14]/5 px-3 sm:px-4 py-1.5 w-full sm:w-auto justify-between sm:justify-start">
+        <div className="flex items-baseline gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 sm:px-4 py-1.5 w-full sm:w-auto justify-between sm:justify-start shadow-xs">
           <div className="flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 translate-y-0.5 text-[#39FF14]" />
-            <span className="text-xs font-bold text-slate-500 uppercase font-mono">Restante</span>
+            <Zap className="h-3.5 w-3.5 translate-y-0.5 text-emerald-600" />
+            <span className="text-xs font-bold text-emerald-700 uppercase font-mono">Restante</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="font-mono text-base sm:text-lg font-black text-emerald-600">
+            <span className="font-mono text-base sm:text-lg font-black text-emerald-700">
               {remaining.toLocaleString()}
             </span>
-            <span className="font-mono text-xs text-slate-500 font-semibold">/ {total.toLocaleString()} kcal</span>
+            <span className="font-mono text-xs text-emerald-600/80 font-semibold">/ {total.toLocaleString()} kcal</span>
           </div>
         </div>
       </div>

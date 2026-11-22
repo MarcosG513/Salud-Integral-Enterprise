@@ -1,38 +1,44 @@
-import { useState } from "react";
-import { Clock, Edit3, Check, X } from "lucide-react";
-import { useClinicalEngine, CLINICAL_SUPPLEMENTS } from "../../context/clinical-engine-context";
+import { useMemo, useState } from "react";
+import {
+  Clock,
+  Edit3,
+  Check,
+  X,
+  ShieldAlert,
+  ChevronDown,
+  ChevronUp,
+  HeartHandshake,
+  Lock,
+} from "lucide-react";
+import { useClinicalEngine } from "../../context/clinical-engine-context";
+import {
+  evaluateSupplementPlan,
+  type EvaluatedSupplement,
+  type SupplementPlanOutput,
+} from "../../engine/supplementEngine";
 import { GlossaryTooltip } from "../../app/components/widgets/ClinicalGlossary";
-import { COLORS, GlassCard, PanelHeader, Meter } from "./telemetry-primitives";
-
-type Compound = {
-  id: string;
-  name: string;
-  abbr: string;
-  dose: string;
-  tracked: string;
-  saturation: number;
-  pathway: string;
-  cls: "A" | "B";
-};
+import { GlassCard, PanelHeader, Meter } from "./telemetry-primitives";
 
 function ClassTag({ cls }: { cls: "A" | "B" }) {
-  const accent = cls === "A" ? COLORS.lime : COLORS.cyan;
+  const isA = cls === "A";
   return (
     <span
-      className="whitespace-nowrap flex-shrink-0 text-[10px] sm:text-xs px-2 py-0.5 rounded uppercase tracking-[0.12em] font-mono shrink-0"
-      style={{ color: accent, border: `1px solid ${accent}55`, background: `${accent}12` }}
+      className={`whitespace-nowrap shrink-0 text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-[0.12em] font-mono font-bold border ${
+        isA
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-sky-50 text-sky-700 border-sky-200"
+      }`}
     >
       Clase {cls}
     </span>
   );
 }
 
-// ── Inline editable dose/timing cell ────────────────────────────────────────
 function InlineEdit({
   value,
   placeholder,
   onCommit,
-  accent
+  accent,
 }: {
   value: string;
   placeholder: string;
@@ -50,17 +56,24 @@ function InlineEdit({
   if (!editing) {
     return (
       <button
-        onClick={() => { setDraft(value); setEditing(true); }}
-        className="flex items-center gap-1 group cursor-pointer text-left"
+        type="button"
+        onClick={() => {
+          setDraft(value);
+          setEditing(true);
+        }}
+        className="flex items-center gap-1 group cursor-pointer text-left min-w-0"
         title={`Editar ${placeholder}`}
       >
         <span
-          className="text-xs font-mono font-semibold"
-          style={{ color: value ? accent : COLORS.textDim }}
+          className="text-xs font-mono font-bold whitespace-nowrap"
+          style={{ color: value ? accent : "#475569" }}
         >
           {value || placeholder}
         </span>
-        <Edit3 size={9} className="opacity-0 group-hover:opacity-60 transition-opacity shrink-0" style={{ color: COLORS.textDim }} />
+        <Edit3
+          size={11}
+          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-slate-400"
+        />
       </button>
     );
   }
@@ -70,197 +83,427 @@ function InlineEdit({
       <input
         autoFocus
         value={draft}
-        onChange={e => setDraft(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") setEditing(false);
+        }}
         onBlur={commit}
         placeholder={placeholder}
-        className="w-24 text-xs bg-[#070A13] border border-[#00F0FF]/50 rounded px-1.5 py-0.5 font-mono text-[#00F0FF] outline-none"
+        className="w-28 text-xs bg-slate-50 border border-sky-400 rounded-xl px-2 py-0.5 font-mono text-sky-700 font-bold outline-none shadow-xs"
       />
-      <button onClick={commit} className="text-[#39FF14]"><Check size={10} /></button>
-      <button onClick={() => setEditing(false)} className="text-slate-500"><X size={10} /></button>
+      <button
+        type="button"
+        onClick={commit}
+        className="text-emerald-600 hover:text-emerald-700 p-0.5 cursor-pointer"
+      >
+        <Check size={12} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setEditing(false)}
+        className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+      >
+        <X size={12} />
+      </button>
     </div>
   );
 }
 
-export function DispensaryMatrix() {
-  const { profile, supplementChecklist, toggleSupplementChecked, customSupplementDose, updateSupplementCustom } = useClinicalEngine();
-
-  // Dynamic override for Caffeine based on Circadian Intercept Cutoff (Past 14:00)
-  const isCaffeineBlocked = true;
-
-  const compounds: Compound[] = (CLINICAL_SUPPLEMENTS || []).map((s) => {
-    const isTaken = supplementChecklist?.[s.id] ?? false;
-    const custom = customSupplementDose?.[s.id];
-    
-    let saturation = s.saturationBase;
-    let tracked = s.dose;
-    
-    if (s.id === "cre") {
-      saturation = isTaken ? 100 : 33;
-      tracked = isTaken ? "5000 / 5000 mg" : "0 / 5000 mg";
-    } else if (s.id === "cit") {
-      const citPercent = Math.min(100, Math.round((profile?.citrullineGrams / 8.0) * 100));
-      const citTracked = `${(profile?.citrullineGrams * 1000).toFixed(0)} / 8000 mg`;
-      saturation = isTaken ? 100 : citPercent;
-      tracked = isTaken ? "8000 / 8000 mg" : citTracked;
-    } else if (s.id === "ash") {
-      saturation = isTaken ? 100 : 25;
-      tracked = isTaken ? "600 / 600 mg" : "0 / 600 mg";
-    } else if (s.id === "caf") {
-      saturation = isCaffeineBlocked ? 0 : (isTaken ? 100 : 15);
-      tracked = isCaffeineBlocked ? "0 / 200 mg (BLOQUEADO)" : (isTaken ? "200 / 200 mg" : "0 / 200 mg");
-    } else if (s.id === "bet") {
-      saturation = isTaken ? 100 : 50;
-      tracked = isTaken ? "3200 / 3200 mg" : "1600 / 3200 mg";
-    } else if (s.id === "the") {
-      saturation = isTaken ? 100 : 20;
-      tracked = isTaken ? "100 / 100 mg" : "0 / 100 mg";
-    } else {
-      saturation = isTaken ? 100 : Math.round(s.saturationBase / 3);
-      tracked = isTaken ? `${s.dose} / ${s.dose}` : `0 / ${s.dose}`;
-    }
-
-    // Apply dose override if set
-    const doseDisplay = custom?.doseOverride || s.dose;
-
-    return {
-      ...s,
-      dose: doseDisplay,
-      tracked,
-      saturation
-    };
-  });
+function SupplementCard({
+  item,
+  onToggle,
+  onUpdateCustom,
+  onOpenHepaticGate,
+}: {
+  item: EvaluatedSupplement;
+  onToggle: (id: string) => void;
+  onUpdateCustom: (id: string, patch: { doseOverride?: string; timingSlot?: string }) => void;
+  onOpenHepaticGate?: () => void;
+}) {
+  const accent = item.isBlocked
+    ? "#E11D48"
+    : item.isTaken
+    ? "#10B981"
+    : item.evidenceClass === "A"
+    ? "#0284C7"
+    : "#6366F1";
 
   return (
-    <GlassCard className="h-full flex flex-col rounded-3xl border border-slate-100 bg-white p-5 shadow-xl shadow-slate-200/50">
+    <div
+      className={`rounded-2xl p-4 transition-all border shadow-sm ${
+        item.isBlocked
+          ? "bg-amber-50/40 border-amber-200"
+          : item.isTaken
+          ? "bg-emerald-50/50 border-emerald-200"
+          : "bg-white border-slate-200/80 hover:border-slate-300"
+      }`}
+      style={{
+        borderLeft: `4px solid ${accent}`,
+      }}
+    >
+      {/* Cabecera en 2 bloques limpios sin truncamiento */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 w-full">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="text-xs px-2.5 py-1 rounded-xl shrink-0 font-mono font-bold whitespace-nowrap bg-slate-100 text-slate-800 border border-slate-200 shadow-xs">
+            {item.abbr}
+          </span>
+          <h4 className="font-bold text-slate-900 text-xs sm:text-sm whitespace-normal break-words leading-snug">
+            {item.name}
+          </h4>
+          <div className="shrink-0">
+            <GlossaryTooltip term={item.id} />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 flex-nowrap">
+          {item.requiresHepaticGate ? (
+            <button
+              type="button"
+              onClick={onOpenHepaticGate}
+              className="text-[11px] px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold cursor-pointer min-h-[36px] flex items-center gap-1 whitespace-nowrap"
+            >
+              <Lock size={12} /> Compuerta Hepática
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onToggle(item.id)}
+              disabled={item.isBlocked}
+              className={`text-[11px] px-3.5 py-1.5 rounded-xl border transition-all font-bold select-none min-h-[36px] flex items-center justify-center whitespace-nowrap shadow-xs ${
+                item.isBlocked
+                  ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                  : item.isTaken
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 cursor-pointer"
+                  : "bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-700 cursor-pointer"
+              }`}
+            >
+              {item.isBlocked ? "BLOQUEADA" : item.isTaken ? "✓ TOMADO" : "☐ REGISTRAR"}
+            </button>
+          )}
+          <ClassTag cls={item.evidenceClass} />
+        </div>
+      </div>
+
+      {/* Badge Condicional si aplica */}
+      {item.conditionalBadge && (
+        <div className="mt-2">
+          <span
+            className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
+              item.isBlocked
+                ? "bg-rose-50 text-rose-700 border-rose-200"
+                : "bg-sky-50 text-sky-700 border-sky-200"
+            }`}
+          >
+            {item.conditionalBadge}
+          </span>
+        </div>
+      )}
+
+      {/* Métricas completas (2 arriba + Vía Metabólica completa abajo) */}
+      <div className="mt-3 grid grid-cols-2 gap-3 text-left w-full">
+        <div className="min-w-0">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.10em] text-slate-500 font-mono font-semibold mb-1 whitespace-normal">
+            Dosis Eficaz
+          </div>
+          <InlineEdit
+            value={item.resolvedDose === item.standardDose ? "" : item.resolvedDose}
+            placeholder={item.resolvedDose}
+            accent={accent}
+            onCommit={(v) => onUpdateCustom(item.id, { doseOverride: v })}
+          />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.10em] text-slate-500 font-mono font-semibold mb-1 whitespace-normal">
+            Estado / Seguimiento
+          </div>
+          <div className="text-xs text-slate-700 font-mono font-bold whitespace-normal break-words">
+            {item.trackedLabel}
+          </div>
+        </div>
+        <div className="col-span-2 min-w-0 bg-slate-50/80 border border-slate-100 rounded-xl p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.10em] text-slate-500 font-mono font-semibold mb-0.5 whitespace-normal">
+            Vía Metabólica
+          </div>
+          <div className="text-xs text-slate-700 font-medium leading-snug whitespace-normal break-words">
+            {item.pathway}
+          </div>
+        </div>
+      </div>
+
+      {/* Nota Condicional / Clínica */}
+      {(item.conditionalNote || item.editorialDisclaimer) && (
+        <p className="mt-2.5 text-[11px] leading-snug text-slate-600 bg-slate-50 border border-slate-200/70 rounded-xl p-2.5">
+          {item.conditionalNote || item.editorialDisclaimer}
+        </p>
+      )}
+
+      {/* Insignia Horaria en UNA sola línea limpia */}
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 w-full flex-nowrap">
+        <div className="bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-bold flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <Clock size={11} className="text-sky-600 shrink-0" />
+          <span className="uppercase tracking-wider">Horario</span>
+        </div>
+        <div className="min-w-0 overflow-x-auto scrollbar-none flex items-center">
+          <InlineEdit
+            value={item.timingSlot === item.timingGuide ? "" : item.timingSlot}
+            placeholder={item.timingSlot}
+            accent="#0284C7"
+            onCommit={(v) => onUpdateCustom(item.id, { timingSlot: v })}
+          />
+        </div>
+      </div>
+
+      {/* Saturation meter */}
+      <div className="mt-2.5 flex items-center gap-2.5">
+        <Meter value={item.saturationPct} accent={accent} height={6} />
+        <span className="text-xs tabular-nums shrink-0 font-mono font-extrabold" style={{ color: accent }}>
+          {item.saturationPct}%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function DispensaryMatrix({ plan: externalPlan }: { plan?: SupplementPlanOutput } = {}) {
+  const {
+    profile,
+    metrics,
+    hormonalLabValues,
+    supplementChecklist,
+    toggleSupplementChecked,
+    customSupplementDose,
+    updateSupplementCustom,
+    updateProfileVariable,
+    clearAshwagandhaSafetyGate,
+  } = useClinicalEngine();
+
+  const [showContextual, setShowContextual] = useState(false);
+  const [hepaticModalOpen, setHepaticModalOpen] = useState(false);
+  const [hepaticChecks, setHepaticChecks] = useState<[boolean, boolean, boolean]>([
+    false,
+    false,
+    false,
+  ]);
+
+  const plan = useMemo(() => {
+    if (externalPlan) return externalPlan;
+    return evaluateSupplementPlan({
+      sexoBiologico: profile.sexoBiologico || "male",
+      peso: profile.peso || 75,
+      horarioEntreno: profile.horarioEntreno || "afternoon",
+      bedtimeHour: profile.bedtimeHour ?? 23,
+      sleepProtection: metrics.sleepProtection,
+      hormonalLabValues,
+      supplementChecklist: supplementChecklist || {},
+      customSupplementDose: customSupplementDose || {},
+      creatineActivatedAt: profile.creatineActivatedAt ?? null,
+      ashwagandhaSafetyCleared: Boolean(profile.ashwagandhaSafetyCleared),
+      optInVascularVitality: Boolean(profile.optInVascularVitality),
+      citrullineGrams: profile.citrullineGrams ?? 8,
+      citrullineTimingMin: profile.citrullineTimingMin ?? 35,
+      doreySessionsPerWeek: profile.doreySessionsPerWeek ?? 0,
+    });
+  }, [
+    externalPlan,
+    profile,
+    metrics.sleepProtection,
+    hormonalLabValues,
+    supplementChecklist,
+    customSupplementDose,
+  ]);
+
+  const allHepaticChecked = hepaticChecks[0] && hepaticChecks[1] && hepaticChecks[2];
+  const ashSpec = plan.coreSupplements.find((s) => s.id === "ash");
+
+  const handleConfirmHepaticGate = () => {
+    if (!allHepaticChecked) return;
+    clearAshwagandhaSafetyGate?.();
+    setHepaticModalOpen(false);
+    setHepaticChecks([false, false, false]);
+  };
+
+  return (
+    <GlassCard className="h-full flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40">
       <PanelHeader
         index="01"
-        title="Mis Suplementos Diarios"
+        title="Dispensario Condicional (Evidencia 2026)"
         accent="#10B981"
         right={
-          <span className="text-xs uppercase tracking-wider font-semibold text-slate-500">
-            {compounds.length} Suplementos
+          <span className="text-xs uppercase tracking-wider font-bold text-slate-500 font-mono whitespace-nowrap">
+            Núcleo + Opcionales
           </span>
         }
       />
-      <div className="flex-1 overflow-auto p-2 space-y-3">
-        {compounds.map((c) => {
-          const isCitEmpty = c.id === "cit" && !supplementChecklist?.[c.id] && c.saturation === 0;
-          const isCafBlocked = c.id === "caf" && isCaffeineBlocked;
-          const custom = customSupplementDose?.[c.id];
-          
-          let cardBorderColor = "border-slate-100";
-          let cardBgColor = "bg-white";
-          let accent = c.cls === "A" ? "#10B981" : "#06B6D4";
 
-          if (isCitEmpty) {
-            cardBorderColor = "border-rose-200";
-            cardBgColor = "bg-rose-50/50";
-            accent = "#FF5E7E";
-          } else if (isCafBlocked) {
-            cardBorderColor = "border-amber-200";
-            cardBgColor = "bg-amber-50/50";
-            accent = "#F59E0B";
-          }
-
-          const isTaken = supplementChecklist?.[c.id] ?? false;
-
-          return (
-            <div
-              key={`compound-${c.id}`}
-              className={`rounded-2xl p-4 transition-all border shadow-md spring-bounce ${
-                isTaken 
-                  ? "bg-emerald-50/60 border-emerald-200" 
-                  : `${cardBgColor} ${cardBorderColor} hover:border-slate-200`
-              }`}
-              style={{
-                borderLeft: `4px solid ${isTaken ? "#10B981" : accent}`,
-              }}
-            >
-              {/* Top row: abbr + name + toggle + class */}
-              <div className="flex items-center justify-between gap-2 w-full min-w-0">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span
-                    className="text-xs px-2.5 py-1 rounded-xl shrink-0 font-mono font-bold whitespace-nowrap bg-slate-100 text-slate-700 border border-slate-200"
-                  >
-                    {c.abbr}
-                  </span>
-                  <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm truncate min-w-0 flex-1">
-                    {c.name}
-                  </h4>
-                  <GlossaryTooltip term={c.id} />
-                  {isCafBlocked && (
-                    <span className="text-[10px] sm:text-xs font-semibold text-rose-700 border border-rose-200 bg-rose-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold shrink-0 whitespace-nowrap">
-                      Pausa Circadiana
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0 flex-nowrap">
-                  <button
-                    onClick={() => toggleSupplementChecked?.(c.id)}
-                    disabled={isCafBlocked}
-                    className={`text-[10px] sm:text-xs px-3 py-1.5 rounded-xl border transition-all font-bold select-none cursor-pointer min-h-[36px] flex items-center justify-center whitespace-nowrap spring-bounce ${
-                      isTaken
-                        ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20"
-                        : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {isTaken ? "✓ TOMADO" : "☐ REGISTRAR"}
-                  </button>
-                  <ClassTag cls={c.cls} />
-                </div>
-              </div>
-
-              {/* Data row */}
-              <div className="mt-2.5 grid grid-cols-3 gap-2 text-left w-full min-w-0">
-                <div className="min-w-0">
-                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.10em] text-slate-500 font-mono mb-0.5 truncate">Dosis Eficaz</div>
-                  <InlineEdit
-                    value={custom?.doseOverride || ""}
-                    placeholder={c.dose}
-                    accent={accent}
-                    onCommit={(v) => updateSupplementCustom(c.id, { doseOverride: v })}
-                  />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.10em] text-slate-500 font-mono mb-0.5 truncate">Registro Bruto</div>
-                  <div className="text-xs text-slate-300 font-mono truncate font-semibold">{c.tracked}</div>
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.10em] text-slate-500 font-mono mb-0.5 truncate">Vía Metabólica</div>
-                  <div className="text-xs text-slate-300 font-medium leading-tight truncate">{c.pathway}</div>
-                </div>
-              </div>
-
-              {/* Timing slot row with circadian badge */}
-              <div className="mt-2 flex items-center gap-2 border-t border-slate-800/80 pt-2 w-full min-w-0 flex-nowrap overflow-hidden">
-                <div className="bg-cyan-950/60 text-cyan-300 border border-cyan-800/60 rounded-full px-2.5 py-0.5 text-[10px] font-mono flex items-center gap-1.5 shrink-0">
-                  <Clock size={10} className="text-cyan-400" />
-                  <span className="uppercase tracking-wider font-bold">Horario</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <InlineEdit
-                    value={custom?.timingSlot || ""}
-                    placeholder="Ej: 07:30 · Pre-entreno"
-                    accent={COLORS.cyan}
-                    onCommit={(v) => updateSupplementCustom(c.id, { timingSlot: v })}
-                  />
-                </div>
-              </div>
-
-              {/* Saturation meter */}
-              <div className="mt-2.5 flex items-center gap-2">
-                <Meter value={c.saturation} accent={accent} height={5} />
-                <span
-                  className="text-xs tabular-nums shrink-0 font-mono font-bold"
-                  style={{ color: accent }}
-                >
-                  {c.saturation}%
-                </span>
-              </div>
+      {/* Compuerta Hepática Modal/Panel para Ashwagandha */}
+      {hepaticModalOpen && ashSpec && (
+        <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 space-y-3 shadow-md">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 text-amber-900 font-extrabold text-xs uppercase tracking-wider">
+              <ShieldAlert size={16} className="text-amber-600 shrink-0" />
+              Compuerta de Seguridad Hepática · Ashwagandha KSM-66
             </div>
-          );
-        })}
+            <button
+              type="button"
+              onClick={() => setHepaticModalOpen(false)}
+              className="text-amber-700 hover:text-amber-900 p-1 cursor-pointer"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-amber-900 leading-relaxed font-medium">
+            {ashSpec.hepaticSafetyWarning}
+          </p>
+          <div className="space-y-2">
+            {(ashSpec.hepaticChecks || []).map((txt, idx) => (
+              <label
+                key={`hep-chk-${idx}`}
+                className="flex items-start gap-2.5 bg-white border border-amber-200 rounded-xl p-2.5 text-xs text-slate-800 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={hepaticChecks[idx]}
+                  onChange={(e) => {
+                    const next: [boolean, boolean, boolean] = [...hepaticChecks] as [
+                      boolean,
+                      boolean,
+                      boolean
+                    ];
+                    next[idx] = e.target.checked;
+                    setHepaticChecks(next);
+                  }}
+                  className="mt-0.5 accent-amber-600 shrink-0"
+                />
+                <span className="leading-snug">{txt}</span>
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            disabled={!allHepaticChecked}
+            onClick={handleConfirmHepaticGate}
+            className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+              allHepaticChecked
+                ? "bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+                : "bg-amber-200 text-amber-500 cursor-not-allowed"
+            }`}
+          >
+            Confirmar Descarte Hepático y Habilitar Ashwagandha
+          </button>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-auto p-1 space-y-4">
+        {/* Sección 1: Núcleo Condicional */}
+        <div className="space-y-3">
+          <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 px-1">
+            Núcleo Condicional de Alto Impacto
+          </div>
+          {plan.coreSupplements.map((item) => (
+            <SupplementCard
+              key={`core-${item.id}`}
+              item={item}
+              onToggle={toggleSupplementChecked}
+              onUpdateCustom={updateSupplementCustom}
+              onOpenHepaticGate={() => setHepaticModalOpen(true)}
+            />
+          ))}
+        </div>
+
+        {/* Sección 2: Soporte Base Contextual (Colapsable / Opcional) */}
+        <div className="border-t border-slate-100 pt-3">
+          <button
+            type="button"
+            onClick={() => setShowContextual((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <div className="text-left">
+              <span className="text-xs font-extrabold text-slate-800 block">
+                Soporte Base Contextual ({plan.contextualSupplements.length})
+              </span>
+              <span className="text-[11px] text-slate-500">
+                Beta-Alanina · Omega-3 · Vitamina D3 (c/ grasa) · Magnesio · Suero WPI
+              </span>
+            </div>
+            {showContextual ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {showContextual && (
+            <div className="mt-3 space-y-3">
+              {plan.contextualSupplements.map((item) => (
+                <SupplementCard
+                  key={`ctx-${item.id}`}
+                  item={item}
+                  onToggle={toggleSupplementChecked}
+                  onUpdateCustom={updateSupplementCustom}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Sección 3: Módulo Privado Opt-In ("Vitalidad y Salud Vascular") */}
+        <div className="border-t border-slate-100 pt-3">
+          <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/40 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="size-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <HeartHandshake size={16} />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold text-slate-900 leading-snug">
+                    {plan.vascularVitalityModule.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                    {plan.vascularVitalityModule.subtitle}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  updateProfileVariable(
+                    "optInVascularVitality",
+                    !plan.vascularVitalityModule.enabled
+                  )
+                }
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all shrink-0 cursor-pointer ${
+                  plan.vascularVitalityModule.enabled
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                }`}
+              >
+                {plan.vascularVitalityModule.enabled ? "Activo (Opt-In)" : "Activar Módulo"}
+              </button>
+            </div>
+
+            {plan.vascularVitalityModule.enabled && (
+              <div className="space-y-3 pt-2 border-t border-indigo-200/60">
+                <SupplementCard
+                  item={plan.vascularVitalityModule.citrullineSupplement}
+                  onToggle={toggleSupplementChecked}
+                  onUpdateCustom={updateSupplementCustom}
+                />
+                <div className="rounded-xl bg-white border border-indigo-100 p-3 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between font-mono font-bold text-indigo-700">
+                    <span>Protocolo Dorey Vascular</span>
+                    <span>
+                      NOx: {plan.vascularVitalityModule.noxScore}% · Dorey:{" "}
+                      {plan.vascularVitalityModule.doreyPercentage}%
+                    </span>
+                  </div>
+                  <p className="text-slate-700 font-medium leading-snug">
+                    {plan.vascularVitalityModule.doreyProtocolSummary}
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug">
+                    {plan.vascularVitalityModule.clinicalDisclaimer}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </GlassCard>
   );

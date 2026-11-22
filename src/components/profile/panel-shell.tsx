@@ -1,4 +1,4 @@
-﻿import { ReactNode } from "react";
+import { ReactNode } from "react";
 
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 
@@ -10,7 +10,7 @@ export function Panel({
   title,
   code,
   icon,
-  accent = "#00F0FF",
+  accent = "#0284C7",
   children,
   className = "",
 }: {
@@ -23,38 +23,26 @@ export function Panel({
 }) {
   return (
     <section
-      className={`relative flex flex-col rounded-xl border overflow-hidden backdrop-blur-xl ${className}`}
-      style={{
-        background: "rgba(15, 19, 34, 0.72)",
-        borderColor: "#1E293B",
-        boxShadow: "0 0 0 1px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.02)",
-      }}
+      className={`relative flex flex-col rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-200/40 p-6 ${className}`}
     >
-      <div
-        className="absolute inset-x-0 top-0 h-px opacity-60"
-        style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
-      />
-      <header
-        className="flex items-center justify-between px-4 py-3 border-b shrink-0"
-        style={{ borderColor: "#1E293B" }}
-      >
+      <header className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
         <div className="flex items-center gap-2.5">
           {icon && <span style={{ color: accent }}>{icon}</span>}
           <h2
-            className="uppercase tracking-[0.18em] text-[#E2E8F0] font-bold"
+            className="uppercase tracking-[0.18em] text-slate-900 font-bold"
             style={{ fontFamily: MONO, fontSize: 12 }}
           >
             {title}
           </h2>
         </div>
         <span
-          className="uppercase tracking-[0.22em] text-[#475569] font-mono text-xs"
+          className="uppercase tracking-[0.22em] text-slate-500 font-mono text-xs font-semibold"
           style={{ fontFamily: MONO }}
         >
           {code}
         </span>
       </header>
-      <div className="flex-1 min-h-0 p-4">{children}</div>
+      <div className="flex-1 min-h-0">{children}</div>
     </section>
   );
 }
@@ -69,7 +57,7 @@ export function Field({
   return (
     <label className="block">
       <span
-        className="block mb-1.5 uppercase tracking-[0.16em] text-[#64748B] font-mono text-xs"
+        className="block mb-1.5 uppercase tracking-[0.16em] text-slate-600 font-mono text-xs font-semibold"
         style={{ fontFamily: MONO }}
       >
         {label}
@@ -81,19 +69,13 @@ export function Field({
 
 export function FeedLine({ label }: { label: string }) {
   return (
-    <div className="mt-2 flex items-center gap-2">
+    <div className="mt-2.5 flex items-center gap-2">
       <span
-        className="inline-block h-1.5 w-1.5 rounded-full"
-        style={{ background: "#00F0FF", boxShadow: "0 0 8px #00F0FF" }}
+        className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500 shadow-xs"
       />
-      <div
-        className="h-px flex-1"
-        style={{
-          background: "linear-gradient(90deg, #00F0FF, rgba(0,240,255,0.05))",
-        }}
-      />
+      <div className="h-px flex-1 bg-slate-100" />
       <span
-        className="uppercase tracking-[0.14em] text-[#00F0FF]/70 font-mono text-xs"
+        className="uppercase tracking-[0.14em] text-sky-600 font-mono text-xs font-semibold"
         style={{ fontFamily: MONO }}
       >
         {label}

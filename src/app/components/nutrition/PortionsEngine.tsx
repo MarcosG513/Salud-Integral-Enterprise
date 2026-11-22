@@ -46,7 +46,7 @@ export function PortionsEngine({ selected }: Props) {
         </h2>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex flex-1 flex-col gap-4 p-4">
         {/* Session Target Lock with Sliders */}
         <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
           <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 font-mono">
@@ -56,7 +56,7 @@ export function PortionsEngine({ selected }: Props) {
             <div className="rounded-xl bg-white p-3 border border-slate-100 shadow-sm">
               <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
                 <span>Proteína</span>
-                <span className="text-emerald-600 font-mono font-extrabold">{targetProtein}g</span>
+                <span className="text-emerald-700 font-mono font-extrabold">{targetProtein}g</span>
               </div>
               <input
                 type="range"
@@ -65,13 +65,13 @@ export function PortionsEngine({ selected }: Props) {
                 step="5"
                 value={targetProtein}
                 onChange={(e) => setTargetProtein(parseInt(e.target.value))}
-                className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#39FF14]"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
               />
             </div>
-            <div className="rounded-sm bg-[#070A13] p-2">
-              <div className="flex justify-between font-mono text-xs uppercase tracking-wider text-slate-600">
+            <div className="rounded-xl bg-white p-3 border border-slate-100 shadow-sm">
+              <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
                 <span>Grasa Perm.</span>
-                <span className="text-[#F5A623]">{targetFat}g</span>
+                <span className="text-amber-700 font-mono font-extrabold">{targetFat}g</span>
               </div>
               <input
                 type="range"
@@ -80,42 +80,46 @@ export function PortionsEngine({ selected }: Props) {
                 step="2"
                 value={targetFat}
                 onChange={(e) => setTargetFat(parseInt(e.target.value))}
-                className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#F5A623]"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
             </div>
           </div>
         </div>
 
         {/* Telemetry Trace */}
-        <div className="rounded-sm border border-[#1E293B] bg-[#0F1322] p-3 font-mono text-[11px] leading-relaxed">
-          <div className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-widest text-[#00F0FF]">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00F0FF]" />
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-700 shadow-xs">
+          <div className="mb-2.5 flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold text-indigo-700">
+            <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
             Trazado de Telemetría
           </div>
 
           {items.length === 0 ? (
             <p className="text-slate-500">// Selecciona alimentos clínicos para calcular porciones...</p>
           ) : (
-            <div className="space-y-3 text-slate-400">
+            <div className="space-y-3 text-slate-600">
               {incidentalDetails.length > 0 ? (
                 <div className="space-y-2">
-                  <p>
-                    <span className="text-slate-500">›</span> Grasas Incidentales:{" "}
-                    <span className="font-bold text-[#F5A623]">{incidentalFat.toFixed(1)}g</span>
+                  <p className="flex items-baseline justify-between">
+                    <span className="text-slate-600 font-medium">› Grasas Incidentales:</span>
+                    <span className="font-bold text-amber-700 font-mono">{incidentalFat.toFixed(1)}g</span>
                   </p>
-                  <p className="flex gap-1.5 pl-3 text-slate-500 text-xs">
-                    <CornerDownRight className="h-3 w-3 shrink-0 translate-y-0.5" />
-                    Permiso de grasa residual →{" "}
-                    <span className="text-[#F5A623] font-bold">{remainingFatAllowance.toFixed(1)}g</span>
+                  <p className="flex items-center justify-between pl-3 text-slate-500 text-[11px]">
+                    <span className="flex items-center gap-1">
+                      <CornerDownRight className="h-3 w-3 shrink-0 text-slate-400" />
+                      Permiso de grasa residual →
+                    </span>
+                    <span className="text-amber-700 font-bold font-mono">{remainingFatAllowance.toFixed(1)}g</span>
                   </p>
-                  <p>
-                    <span className="text-slate-500">›</span> Proteína Incidental:{" "}
-                    <span className="font-bold text-[#39FF14]">{incidentalProtein.toFixed(1)}g</span>
+                  <p className="flex items-baseline justify-between pt-1">
+                    <span className="text-slate-600 font-medium">› Proteína Incidental:</span>
+                    <span className="font-bold text-emerald-700 font-mono">{incidentalProtein.toFixed(1)}g</span>
                   </p>
-                  <p className="flex gap-1.5 pl-3 text-slate-500 text-xs">
-                    <CornerDownRight className="h-3 w-3 shrink-0 translate-y-0.5" />
-                    Proteína restante →{" "}
-                    <span className="text-[#39FF14] font-bold">{remainingProtein.toFixed(1)}g</span>
+                  <p className="flex items-center justify-between pl-3 text-slate-500 text-[11px]">
+                    <span className="flex items-center gap-1">
+                      <CornerDownRight className="h-3 w-3 shrink-0 text-slate-400" />
+                      Proteína restante →
+                    </span>
+                    <span className="text-emerald-700 font-bold font-mono">{remainingProtein.toFixed(1)}g</span>
                   </p>
                 </div>
               ) : (
@@ -123,19 +127,21 @@ export function PortionsEngine({ selected }: Props) {
               )}
 
               {hasChicken ? (
-                <div className="border-t border-[#1E293B] pt-2 space-y-1">
-                  <p className="text-slate-200">
-                    <span className="text-[#39FF14] font-bold">›</span> Pechuga de Pollo Limpia Cruda:{" "}
-                    <span className="font-bold text-[#39FF14] [text-shadow:0_0_10px_rgba(57,255,20,0.4)]">
+                <div className="border-t border-slate-200/80 pt-2.5 space-y-1">
+                  <p className="text-slate-900 font-medium flex items-baseline justify-between">
+                    <span>
+                      <span className="text-emerald-600 font-bold mr-1">›</span> Pechuga de Pollo Limpia Cruda:
+                    </span>
+                    <span className="font-extrabold text-emerald-700 font-mono text-sm">
                       {rawChickenNeeded.toFixed(0)}g
                     </span>
                   </p>
-                  <p className="text-xs text-slate-500">
-                    El pollo rinde 31g de proteína por cada 100g.
+                  <p className="text-[11px] text-slate-500">
+                    El pollo rinde 31g de proteína neta por cada 100g en crudo.
                   </p>
                 </div>
               ) : (
-                <div className="border-t border-[#1E293B] pt-2 text-slate-500 text-xs">
+                <div className="border-t border-slate-200/80 pt-2 text-slate-500 text-[11px]">
                   // Agrega Pechuga de Pollo para calcular los gramos requeridos.
                 </div>
               )}
@@ -144,23 +150,23 @@ export function PortionsEngine({ selected }: Props) {
         </div>
 
         {/* Computed Portions Table */}
-        <div className="rounded-sm border border-[#1E293B] bg-[#0F1322] p-3">
-          <div className="mb-2 font-mono text-xs uppercase tracking-widest text-slate-500">
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 shadow-xs">
+          <div className="mb-2.5 font-mono text-xs uppercase tracking-wider text-slate-600 font-bold">
             Pesos Crudos Calculados (Por porción de 100g)
           </div>
           <div className="space-y-1.5">
             {items.length === 0 && (
-              <p className="font-mono text-xs text-slate-600">— sin elementos —</p>
+              <p className="font-mono text-xs text-slate-500 italic">— sin elementos —</p>
             )}
             {items.map((f) => {
               const grams = f.id === "pollo" ? rawChickenNeeded : 100;
               return (
                 <div
                   key={`portion-${f.id}`}
-                  className="flex items-center justify-between rounded-sm bg-[#070A13] px-2.5 py-1.5"
+                  className="flex items-center justify-between rounded-xl bg-white border border-slate-200/70 px-3 py-2 shadow-xs"
                 >
-                  <span className="text-[11px] text-slate-300">{f.name}</span>
-                  <span className="font-mono text-[12px] font-bold text-[#00F0FF]">
+                  <span className="text-xs font-semibold text-slate-800">{f.name}</span>
+                  <span className="font-mono text-xs font-extrabold text-sky-700">
                     {grams.toFixed(0)}g
                   </span>
                 </div>

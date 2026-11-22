@@ -1,6 +1,7 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Scale, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { useClinicalEngine } from "../../context/clinical-engine-context";
+import { parseLocaleNumber } from "../../lib/number-utils";
 import { Panel } from "./panel-shell";
 
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
@@ -31,7 +32,7 @@ function Sparkline({ values }: { values: number[] }) {
     .join(" ");
   return (
     <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-8 w-full">
-      <polyline points={pts} fill="none" stroke="#00F0FF" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+      <polyline points={pts} fill="none" stroke="#0284C7" strokeWidth={2} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -48,46 +49,50 @@ export function WeightLedger() {
   const delta = emaLast - emaPrev;
 
   const add = () => {
-    const v = parseFloat(draft.replace(",", "."));
-    if (!isNaN(v) && v > 0) {
+    const v = parseLocaleNumber(draft);
+    if (v !== null && v > 20 && v < 350) {
       addWeightLog?.(Number(v.toFixed(1)));
       setDraft("");
     }
   };
 
   return (
-    <Panel title="Registro de Bitácora de Peso" code="LEDGER//03" icon={<Scale size={15} />} className="h-full">
+    <Panel title="Registro de Bitácora de Peso" code="LEDGER//03" icon={<Scale size={16} />} className="h-full">
       <div className="flex h-full flex-col text-left">
         {/* Append input */}
         <div className="flex gap-2 shrink-0">
           <input
+            type="text"
+            inputMode="decimal"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && add()}
-            placeholder="KG REAL DE BÁSCULA"
-            className="w-full rounded-md border bg-[#070A13] px-3 py-2 outline-none text-[#E2E8F0] placeholder:text-[#334155] focus:border-[#00F0FF] font-mono text-[13px]"
-            style={{ borderColor: "#1E293B" }}
+            placeholder="Ej: 84,7"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 outline-none text-slate-900 placeholder:text-slate-400 focus:border-sky-500 font-mono text-xs font-semibold shadow-xs"
+            style={{ fontFamily: MONO }}
           />
           <button
             onClick={add}
-            className="flex items-center gap-1.5 rounded-md border px-3 transition-colors hover:bg-[#00F0FF]/10 font-mono text-[12px] font-bold"
-            style={{ borderColor: "rgba(0,240,255,0.4)", color: "#00F0FF" }}
+            className="flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 font-mono text-xs font-bold transition-colors shadow-xs shrink-0"
+            style={{ fontFamily: MONO }}
           >
             <Plus size={14} /> REGISTRAR
           </button>
         </div>
 
         {/* EMA-20 preview */}
-        <div className="mt-3 rounded-md border p-3 shrink-0" style={{ borderColor: "#1E293B", background: "#070A13" }}>
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 shrink-0 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="uppercase tracking-[0.16em] text-[#64748B] font-mono text-xs" style={{ fontFamily: MONO }}>
+            <span className="uppercase tracking-[0.16em] text-slate-600 font-mono text-xs font-bold" style={{ fontFamily: MONO }}>
               SUAVIZADO EMA-20
             </span>
             <span
-              className="flex items-center gap-1 font-mono text-[11px] font-bold"
-              style={{ color: trendDown ? "#39FF14" : "#00F0FF" }}
+              className={`flex items-center gap-1 font-mono text-xs font-bold ${
+                trendDown ? "text-emerald-700" : "text-sky-700"
+              }`}
+              style={{ fontFamily: MONO }}
             >
-              {trendDown ? <TrendingDown size={13} /> : <TrendingUp size={13} />}
+              {trendDown ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
               {delta >= 0 ? "+" : ""}
               {delta.toFixed(2)} kg
             </span>
@@ -97,28 +102,28 @@ export function WeightLedger() {
           </div>
         </div>
 
-        {/* Ledger list */}
-        <div className="mt-3 flex-1 min-h-0 overflow-y-auto pr-1">
-          <div className="flex flex-col gap-1">
+        {/* Ledger list (scroll unificado en contenedor principal <main>) */}
+        <div className="mt-3 flex-1 min-h-0 pr-1">
+          <div className="flex flex-col gap-1.5">
             {(profile?.weightLogs || []).map((w: number, i: number) => {
               const isLast = i === (profile?.weightLogs || []).length - 1;
               return (
                 <div
                   key={`weight-log-${i}`}
-                  className="flex items-center justify-between rounded border px-3 py-1.5"
-                  style={{
-                    borderColor: isLast ? "rgba(57,255,20,0.4)" : "#1E293B",
-                    background: isLast ? "rgba(57,255,20,0.05)" : "transparent",
-                  }}
+                  className={`flex items-center justify-between rounded-xl border px-3.5 py-2 transition-colors ${
+                    isLast
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-950 shadow-xs font-bold"
+                      : "border-slate-100 bg-white hover:bg-slate-50 text-slate-900"
+                  }`}
                 >
-                  <span className="text-[#475569] font-mono text-xs" style={{ fontFamily: MONO }}>
-                    {String(i + 1).padStart(2, "0")}
+                  <span className="text-slate-400 font-mono text-xs font-semibold" style={{ fontFamily: MONO }}>
+                    #{String(i + 1).padStart(2, "0")}
                   </span>
-                  <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: "#E2E8F0" }} className="font-mono">
-                    {w.toFixed(1)}
+                  <span style={{ fontFamily: MONO }} className="font-mono text-sm font-extrabold">
+                    {w.toFixed(1)} <span className="text-xs font-normal text-slate-500">kg</span>
                   </span>
-                  <span className="text-[#334155] font-mono text-xs" style={{ fontFamily: MONO }}>
-                    {smoothed[i]?.toFixed(2)}
+                  <span className="text-slate-500 font-mono text-xs font-semibold" style={{ fontFamily: MONO }}>
+                    EMA: {smoothed[i]?.toFixed(2)}
                   </span>
                 </div>
               );
