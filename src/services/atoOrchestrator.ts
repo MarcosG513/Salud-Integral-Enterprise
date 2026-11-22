@@ -59,9 +59,11 @@ const PROXY_URL = import.meta.env.VITE_ATO_PROXY_URL || "/api/ato";
 
 const COOLDOWN_MS = 30_000;          // 30 seconds between calls
 const CACHE_TTL_MS = 5 * 60_000;    // 5-minute cache TTL per payload hash
+const MAX_CACHE_ENTRIES = 12;       // LRU ceiling for ato_cache_es_v2_* entries
 const LS_TIMESTAMP_KEY = "ato_last_call_timestamp";
 const LS_CACHE_PREFIX = "ato_cache_es_v2_";
 const TIMEOUT_MS = 15_000;           // 15-second request timeout
+const RETRY_DELAYS_MS = [600, 1400]; // Exponential backoff for HTTP 429 / 503
 
 // ── Circuit Breaker Pattern ───────────────────────────────────────────────────
 // 3 consecutive failures -> state OPEN for 60s -> auto retry in HALF_OPEN
@@ -112,25 +114,36 @@ export function resetCircuitBreaker(): void {
   circuitBreaker.state = "CLOSED";
 }
 
-// ── Payload Hashing (djb2 fast string hash with normalized EA & last weight) ───
+// ── Payload Hashing (djb2 fast string hash with floats normalized to 1 decimal) ─
+
+function round1(value: number | undefined): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.round(value * 10) / 10;
+}
 
 function computeHash(input: ATOInput): string {
   const lastWeight = input.profile.weightLogs?.length
-    ? input.profile.weightLogs[input.profile.weightLogs.length - 1]
+    ? round1(input.profile.weightLogs[input.profile.weightLogs.length - 1]) ?? 70
     : 70;
 
-  const normalizedEA = Math.round(input.energyAvailability * 10) / 10;
-
   const raw = JSON.stringify({
-    labs: input.labs,
-    energyAvailability: normalizedEA,
+    labs: {
+      lh: round1(input.labs.lh),
+      fsh: round1(input.labs.fsh),
+      testosterone: round1(input.labs.testosterone),
+      shbg: round1(input.labs.shbg),
+      cortisol: round1(input.labs.cortisol),
+      prolactina: round1(input.labs.prolactina),
+      estradiol: round1(input.labs.estradiol),
+    },
+    energyAvailability: round1(input.energyAvailability) ?? 0,
     profile: {
-      age: input.profile.age,
-      bodyFat: input.profile.bodyFat,
-      activityFactor: input.profile.activityFactor,
-      mesocycleWeek: input.profile.mesocycleWeek,
-      deficitTarget: input.profile.deficitTarget,
-      cnsReadiness: input.profile.cnsReadiness,
+      age: round1(input.profile.age),
+      bodyFat: round1(input.profile.bodyFat),
+      activityFactor: round1(input.profile.activityFactor),
+      mesocycleWeek: Math.round(input.profile.mesocycleWeek),
+      deficitTarget: Math.round(input.profile.deficitTarget),
+      cnsReadiness: round1(input.profile.cnsReadiness),
       lastWeight,
     },
   });
@@ -142,27 +155,37 @@ function computeHash(input: ATOInput): string {
   return (hash >>> 0).toString(16); // unsigned hex
 }
 
-// ── LocalStorage Cache Layer with TTL Purge ────────────────────────────────────
+// ── LocalStorage Cache Layer with TTL + LRU Purge ─────────────────────────────
+
+interface CachedATOEntry extends ATODirective {
+  _lastUsedAt?: number;
+}
 
 export function purgeExpiredCache(): void {
   try {
     const keysToRemove: string[] = [];
+    const activeEntries: Array<{ key: string; lastUsed: number }> = [];
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      // Clean legacy English cache keys or expired Spanish cache keys
+      // Clean legacy English cache keys or expired/oversized Spanish cache keys
       if (key && (key.startsWith("ato_cache_") || key.startsWith(LS_CACHE_PREFIX))) {
         if (!key.startsWith(LS_CACHE_PREFIX)) {
-          // Legacy cache key from v1 (which may contain English responses) — immediately remove
           keysToRemove.push(key);
           continue;
         }
         try {
           const raw = localStorage.getItem(key);
           if (raw) {
-            const cached: ATODirective = JSON.parse(raw);
+            const cached: CachedATOEntry = JSON.parse(raw);
             const age = Date.now() - (cached._timestamp ?? 0);
             if (age > CACHE_TTL_MS) {
               keysToRemove.push(key);
+            } else {
+              activeEntries.push({
+                key,
+                lastUsed: cached._lastUsedAt ?? cached._timestamp ?? 0,
+              });
             }
           }
         } catch {
@@ -170,6 +193,16 @@ export function purgeExpiredCache(): void {
         }
       }
     }
+
+    // LRU eviction if cache exceeds MAX_CACHE_ENTRIES
+    if (activeEntries.length > MAX_CACHE_ENTRIES) {
+      activeEntries.sort((a, b) => a.lastUsed - b.lastUsed);
+      const excessCount = activeEntries.length - MAX_CACHE_ENTRIES;
+      for (let i = 0; i < excessCount; i++) {
+        keysToRemove.push(activeEntries[i].key);
+      }
+    }
+
     keysToRemove.forEach((k) => localStorage.removeItem(k));
   } catch {}
 }
@@ -179,15 +212,18 @@ purgeExpiredCache();
 
 function readCache(hash: string): ATODirective | null {
   try {
-    const raw = localStorage.getItem(LS_CACHE_PREFIX + hash);
+    const fullKey = LS_CACHE_PREFIX + hash;
+    const raw = localStorage.getItem(fullKey);
     if (!raw) return null;
-    const cached: ATODirective = JSON.parse(raw);
+    const cached: CachedATOEntry = JSON.parse(raw);
     const age = Date.now() - (cached._timestamp ?? 0);
     if (age > CACHE_TTL_MS) {
-      localStorage.removeItem(LS_CACHE_PREFIX + hash);
+      localStorage.removeItem(fullKey);
       return null;
     }
-    return { ...cached, _source: "cache" };
+    const touched: CachedATOEntry = { ...cached, _lastUsedAt: Date.now() };
+    localStorage.setItem(fullKey, JSON.stringify(touched));
+    return { ...touched, _source: "cache" };
   } catch {
     return null;
   }
@@ -195,12 +231,15 @@ function readCache(hash: string): ATODirective | null {
 
 function writeCache(hash: string, directive: ATODirective): void {
   try {
-    const toStore: ATODirective = {
+    const now = Date.now();
+    const toStore: CachedATOEntry = {
       ...directive,
-      _timestamp: Date.now(),
+      _timestamp: now,
+      _lastUsedAt: now,
       _source: directive._source || "gemini",
     };
     localStorage.setItem(LS_CACHE_PREFIX + hash, JSON.stringify(toStore));
+    purgeExpiredCache();
   } catch {
     // localStorage full or disabled — silently skip caching
   }
@@ -224,37 +263,53 @@ function stampCooldown(): void {
   } catch {}
 }
 
-// ── Proxy Client Call with AbortController ────────────────────────────────────
+// ── Proxy Client Call with AbortController & Exponential Backoff (429/503) ────
+
+function sleepMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function callATOProxy(input: ATOInput): Promise<ATODirective> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let lastError: unknown;
 
-  try {
-    const res = await fetch(PROXY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-      signal: controller.signal,
-    });
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    if (!res.ok) {
-      throw new Error(`PROXY_STATUS_${res.status}`);
+    try {
+      const res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if ((res.status === 429 || res.status === 503) && attempt < RETRY_DELAYS_MS.length) {
+        await sleepMs(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+
+      if (!res.ok) {
+        throw new Error(`PROXY_STATUS_${res.status}`);
+      }
+
+      const data = await res.json();
+      if (!data?.directive?.axisStatus || !data?.directive?.clinicalSummary) {
+        throw new Error("INVALID_PROXY_PAYLOAD");
+      }
+
+      recordBreakerSuccess();
+      return data.directive;
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+      lastError = err;
     }
-
-    const data = await res.json();
-    if (!data?.directive?.axisStatus || !data?.directive?.clinicalSummary) {
-      throw new Error("INVALID_PROXY_PAYLOAD");
-    }
-
-    recordBreakerSuccess();
-    return data.directive;
-  } catch (err: any) {
-    recordBreakerFailure();
-    throw err;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  recordBreakerFailure();
+  throw lastError;
 }
 
 // ── Extended Local Mathematical Fallback Heuristic Engine ─────────────────────
