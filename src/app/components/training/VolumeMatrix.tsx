@@ -122,15 +122,24 @@ export function VolumeMatrix({ activeWeek, plan: externalPlan }: Props) {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between mt-1.5 font-mono text-[11px] tracking-wider text-slate-500 font-semibold">
-                  <span className="flex items-center">
-                    MEV <GlossaryTooltip term="MEV" instanceId={`volume-matrix-${g.muscleId}-mev`} /> {g.mev}
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 font-mono text-[11px] tracking-wider text-slate-500 font-semibold">
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="min-w-0">MEV {g.mev}</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip term="MEV" instanceId={`volume-matrix-${g.muscleId}-mev`} />
+                    </span>
                   </span>
-                  <span className="flex items-center">
-                    MAV <GlossaryTooltip term="MAV" instanceId={`volume-matrix-${g.muscleId}-mav`} /> {g.mav}
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="min-w-0">MAV {g.mav}</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip term="MAV" instanceId={`volume-matrix-${g.muscleId}-mav`} />
+                    </span>
                   </span>
-                  <span className="flex items-center">
-                    MRV <GlossaryTooltip term="MRV" instanceId={`volume-matrix-${g.muscleId}-mrv`} /> {g.mrv}
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="min-w-0">MRV {g.mrv}</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip term="MRV" instanceId={`volume-matrix-${g.muscleId}-mrv`} />
+                    </span>
                   </span>
                   <span style={{ color: state.color }} className="font-bold whitespace-nowrap">{state.label}</span>
                 </div>

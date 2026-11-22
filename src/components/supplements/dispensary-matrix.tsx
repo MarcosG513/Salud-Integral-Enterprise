@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronUp,
   HeartHandshake,
-  Lock,
 } from "lucide-react";
 import { useClinicalEngine } from "../../context/clinical-engine-context";
 import {
@@ -142,35 +141,37 @@ function SupplementCard({
         borderLeft: `4px solid ${accent}`,
       }}
     >
-      {/* Cabecera en 2 bloques limpios sin truncamiento */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 w-full">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+      {/* Cabecera en 2 filas independientes sin solapamiento ni truncamiento */}
+      <div className="flex flex-col gap-2.5 w-full min-w-0">
+        {/* Fila 1 (Identidad) */}
+        <div className="flex items-start justify-between gap-2 w-full min-w-0">
           <span className="text-xs px-2.5 py-1 rounded-xl shrink-0 font-mono font-bold whitespace-nowrap bg-slate-100 text-slate-800 border border-slate-200 shadow-xs">
             {item.abbr}
           </span>
-          <h4 className="font-bold text-slate-900 text-xs sm:text-sm whitespace-normal break-words leading-snug">
+          <h4 className="flex-1 min-w-0 whitespace-normal break-words leading-snug font-bold text-slate-900 text-xs sm:text-sm">
             {item.name}
           </h4>
-          <div className="shrink-0">
+          <div className="shrink-0 -mt-1 -mr-1">
             <GlossaryTooltip term={item.id} />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 flex-nowrap">
+        {/* Fila 2 (Acción + Clase) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
           {item.requiresHepaticGate ? (
             <button
               type="button"
               onClick={onOpenHepaticGate}
-              className="text-[11px] px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold cursor-pointer min-h-[36px] flex items-center gap-1 whitespace-nowrap"
+              className="shrink-0 whitespace-nowrap text-[11px] px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold cursor-pointer min-h-[36px] flex items-center gap-1"
             >
-              <Lock size={12} /> Compuerta Hepática
+              🔒 Compuerta Hepática
             </button>
           ) : (
             <button
               type="button"
               onClick={() => onToggle(item.id)}
               disabled={item.isBlocked}
-              className={`text-[11px] px-3.5 py-1.5 rounded-xl border transition-all font-bold select-none min-h-[36px] flex items-center justify-center whitespace-nowrap shadow-xs ${
+              className={`shrink-0 whitespace-nowrap text-[11px] px-3.5 py-1.5 rounded-xl border transition-all font-bold select-none min-h-[36px] flex items-center justify-center shadow-xs ${
                 item.isBlocked
                   ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
                   : item.isTaken
@@ -185,20 +186,22 @@ function SupplementCard({
         </div>
       </div>
 
-      {/* Badge Condicional si aplica */}
-      {item.conditionalBadge && (
-        <div className="mt-2">
-          <span
-            className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
-              item.isBlocked
-                ? "bg-rose-50 text-rose-700 border-rose-200"
-                : "bg-sky-50 text-sky-700 border-sky-200"
-            }`}
-          >
-            {item.conditionalBadge}
-          </span>
-        </div>
-      )}
+      {/* Badge Condicional si aplica (omite pill redundante de compuerta hepática) */}
+      {item.conditionalBadge &&
+        !item.requiresHepaticGate &&
+        item.conditionalBadge !== "Compuerta Hepática Obligatoria" && (
+          <div className="mt-2">
+            <span
+              className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
+                item.isBlocked
+                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                  : "bg-sky-50 text-sky-700 border-sky-200"
+              }`}
+            >
+              {item.conditionalBadge}
+            </span>
+          </div>
+        )}
 
       {/* Métricas completas (2 arriba + Vía Metabólica completa abajo) */}
       <div className="mt-3 grid grid-cols-2 gap-3 text-left w-full">

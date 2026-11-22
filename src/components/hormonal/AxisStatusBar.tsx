@@ -39,9 +39,9 @@ function InlineLabValue({
 
   return (
     <div className="flex flex-col gap-1 p-3 border border-slate-200 bg-slate-50 text-slate-900 font-semibold rounded-2xl w-full min-w-0 transition-all hover:border-slate-300 shadow-xs">
-      <span className="uppercase text-[10px] tracking-wider flex items-center justify-between font-bold text-slate-500">
-        <span className="truncate">{label}</span>
-        {tooltip}
+      <span className="uppercase text-[10px] tracking-wider flex items-center justify-between gap-2 min-w-0 font-bold text-slate-500">
+        <span className="min-w-0 break-words leading-tight">{label}</span>
+        {tooltip && <span className="shrink-0 -my-2 -mr-1.5">{tooltip}</span>}
       </span>
 
       {editing ? (

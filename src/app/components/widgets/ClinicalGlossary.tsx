@@ -166,14 +166,14 @@ export function GlossaryTooltip({ term, position = "top", instanceId }: Glossary
   const handleClose = () => setActiveGlossaryId(null);
 
   return (
-    <span className="relative inline-flex items-center ml-0.5">
+    <span className="relative inline-flex items-center shrink-0 ml-0.5">
       <button
         ref={btnRef}
         type="button"
         onClick={handleToggle}
         aria-label={`Definición clínica de ${term}`}
         aria-expanded={isOpen}
-        className="min-w-[44px] min-h-[44px] p-2 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/70 active:bg-indigo-100 transition-all cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="min-w-[44px] min-h-[44px] p-2 inline-flex items-center justify-center shrink-0 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/70 active:bg-indigo-100 transition-all cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         title={`Definición de ${term}`}
       >
         <Info size={16} aria-hidden="true" />
@@ -190,3 +190,5 @@ export function GlossaryTooltip({ term, position = "top", instanceId }: Glossary
     </span>
   );
 }
+
+export { GlossaryTooltip as ClinicalGlossary };

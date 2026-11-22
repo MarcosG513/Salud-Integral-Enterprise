@@ -416,8 +416,11 @@ export function RoutineGrid({ activeWeek, plan: externalPlan, onTriggerRest }: P
           <div className="grid grid-cols-[2.2fr_1.2fr_0.6fr_0.7fr_1.1fr] gap-3 px-4 sm:px-5 py-2.5 border-b border-slate-100 font-mono text-xs tracking-[0.10em] text-slate-500 uppercase shrink-0 bg-slate-50/60 rounded-xl mb-1">
             <span>Ejercicio & Guía</span>
             <span>Patrón / RIR</span>
-            <span className="text-right">
-              Series <GlossaryTooltip term="MEV" />
+            <span className="flex items-center justify-end gap-2 min-w-0 text-right">
+              <span className="min-w-0">Series</span>
+              <span className="shrink-0 -my-2 -mr-1">
+                <GlossaryTooltip term="MEV" />
+              </span>
             </span>
             <span className="text-right">Reps</span>
             <span className="text-right pr-4">Carga</span>

@@ -64,12 +64,14 @@ export function CortisolMatrixPanel() {
   return (
     <GlassCard title="Cortisol · Matriz de Alineación Circadiana" code="HPA//CIRC-04" accent="#0284C7">
       <div className="flex h-full flex-col gap-3.5 text-left">
-        <div className="flex items-center justify-between rounded-2xl px-4 py-2.5 bg-slate-50 border border-slate-200 shadow-xs">
-          <span className="uppercase text-xs tracking-[0.12em] font-mono font-bold flex items-center gap-1.5 text-slate-600">
-            Sincronización Circadiana Diaria
-            <GlossaryTooltip term="circadian interceptor" />
+        <div className="flex items-center justify-between gap-2 rounded-2xl px-4 py-2.5 bg-slate-50 border border-slate-200 shadow-xs">
+          <span className="uppercase text-xs tracking-[0.12em] font-mono font-bold flex items-center gap-2 min-w-0 text-slate-600">
+            <span className="min-w-0 break-words">Sincronización Circadiana Diaria</span>
+            <span className="shrink-0 -my-1.5">
+              <GlossaryTooltip term="circadian interceptor" />
+            </span>
           </span>
-          <span style={{ ...mono }} className="font-mono text-sm font-extrabold text-emerald-700">{syncPercentage}%</span>
+          <span style={{ ...mono }} className="font-mono text-sm font-extrabold text-emerald-700 shrink-0">{syncPercentage}%</span>
         </div>
 
         <div className="relative flex flex-1 flex-col gap-2.5">
@@ -87,11 +89,15 @@ export function CortisolMatrixPanel() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-1 text-sm text-slate-900 font-bold">
-                      {a.title}
-                      {a.tooltipTerm && <GlossaryTooltip term={a.tooltipTerm} instanceId={`cortisol-anchor-${a.title}-${a.tooltipTerm}`} />}
+                    <span className="flex items-center gap-2 min-w-0 text-sm text-slate-900 font-bold">
+                      <span className="min-w-0 break-words">{a.title}</span>
+                      {a.tooltipTerm && (
+                        <span className="shrink-0 -my-1.5">
+                          <GlossaryTooltip term={a.tooltipTerm} instanceId={`cortisol-anchor-${a.title}-${a.tooltipTerm}`} />
+                        </span>
+                      )}
                     </span>
-                    <span style={{ ...mono }} className={`font-mono text-xs font-black ${a.metricColor}`}>{a.metric}</span>
+                    <span style={{ ...mono }} className={`font-mono text-xs font-black shrink-0 ${a.metricColor}`}>{a.metric}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span style={{ ...mono }} className="font-mono text-slate-500 text-xs font-semibold">{a.window}</span>

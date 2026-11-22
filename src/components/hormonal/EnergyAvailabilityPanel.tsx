@@ -36,11 +36,13 @@ export function EnergyAvailabilityPanel({ ea: propEa }: EnergyAvailabilityPanelP
   return (
     <GlassCard
       title={
-        <span className="flex items-center">
-          Disponibilidad Energética
-          <GlossaryTooltip term="EA" />
-          <span className="mx-1">·</span>
-          Diagnóstico Solo Lectura
+        <span className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="min-w-0">Disponibilidad Energética</span>
+          <span className="shrink-0 -my-1.5">
+            <GlossaryTooltip term="EA" />
+          </span>
+          <span className="text-slate-400">·</span>
+          <span className="min-w-0">Diagnóstico Solo Lectura</span>
         </span>
       }
       code="EA//IOC-2023"
@@ -179,16 +181,20 @@ export function EnergyAvailabilityPanel({ ea: propEa }: EnergyAvailabilityPanelP
         {suppressed ? (
           <div className="flex items-start gap-2.5 rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900 shadow-xs mt-auto">
             <AlertTriangle size={18} className="text-rose-600 mt-0.5 shrink-0" />
-            <span className="font-mono text-xs leading-relaxed font-semibold flex items-center flex-wrap text-rose-800">
+            <span className="font-mono text-xs leading-relaxed font-semibold flex items-center flex-wrap gap-1.5 text-rose-800 min-w-0">
               ESCUDO IOC 2023 ACTIVO: Baja disponibilidad sostenida (&lt;{eaThreshold} kcal/kg{" "}
-              <span className="mx-1 inline-flex items-center text-slate-900 font-bold">
-                FFM
-                <GlossaryTooltip term="FFM" />
+              <span className="inline-flex items-center gap-1 min-w-0 text-slate-900 font-bold">
+                <span className="min-w-0">FFM</span>
+                <span className="shrink-0 -my-1.5">
+                  <GlossaryTooltip term="FFM" />
+                </span>
               </span>
               /día). Compensado automáticamente con +calorías o reducción de volumen.
-              <span className="ml-1.5 inline-flex items-center text-rose-800 bg-rose-100 border border-rose-300 px-1.5 py-0.5 rounded-lg font-bold">
-                RED-S
-                <GlossaryTooltip term="RED-S" />
+              <span className="inline-flex items-center gap-1 min-w-0 text-rose-800 bg-rose-100 border border-rose-300 px-1.5 py-0.5 rounded-lg font-bold">
+                <span className="min-w-0">RED-S</span>
+                <span className="shrink-0 -my-1.5">
+                  <GlossaryTooltip term="RED-S" />
+                </span>
               </span>
             </span>
           </div>

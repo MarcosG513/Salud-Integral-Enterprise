@@ -71,13 +71,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
               <div className="grid grid-cols-2 gap-3">
                 {/* Porcentaje de Grasa */}
                 <div>
-                  <label className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
-                    <span>Grasa Corporal (%)</span>
-                    <GlossaryTooltip
-                      term="porcentaje_grasa_panel"
-                      instanceId="tcp-fat-percent"
-                      position="bottom"
-                    />
+                  <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-600 mb-1.5">
+                    <span className="min-w-0">Grasa Corporal (%)</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="porcentaje_grasa_panel"
+                        instanceId="tcp-fat-percent"
+                        position="bottom"
+                      />
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -116,13 +118,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
                 {/* Edad */}
                 <div>
-                  <label className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
-                    <span>Edad (Años)</span>
-                    <GlossaryTooltip
-                      term="edad_panel"
-                      instanceId="tcp-age"
-                      position="bottom"
-                    />
+                  <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-600 mb-1.5">
+                    <span className="min-w-0">Edad (Años)</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="edad_panel"
+                        instanceId="tcp-age"
+                        position="bottom"
+                      />
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -152,13 +156,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
               {/* Registro de Peso Crudo */}
               <div>
-                <label className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
-                  <span>Añadir Registro de Peso (kg)</span>
-                  <GlossaryTooltip
-                    term="peso_crudo_panel"
-                    instanceId="tcp-weight-log"
-                    position="bottom"
-                  />
+                <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-600 mb-1.5">
+                  <span className="min-w-0">Añadir Registro de Peso (kg)</span>
+                  <span className="shrink-0 -my-1.5">
+                    <GlossaryTooltip
+                      term="peso_crudo_panel"
+                      instanceId="tcp-weight-log"
+                      position="bottom"
+                    />
+                  </span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -192,16 +198,18 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
               {/* Déficit Calórico */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="flex items-center text-xs font-semibold text-slate-700">
-                    Déficit Calórico Diario
-                    <GlossaryTooltip
-                      term="deficit_calorico_panel"
-                      instanceId="tcp-deficit"
-                      position="bottom"
-                    />
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="flex items-center gap-2 min-w-0 text-xs font-semibold text-slate-700">
+                    <span className="min-w-0">Déficit Calórico Diario</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="deficit_calorico_panel"
+                        instanceId="tcp-deficit"
+                        position="bottom"
+                      />
+                    </span>
                   </span>
-                  <span className="font-mono text-xs font-bold text-amber-700 tabular-nums">
+                  <span className="font-mono text-xs font-bold text-amber-700 tabular-nums shrink-0">
                     {profile.deficitTarget} kcal
                   </span>
                 </div>
@@ -223,16 +231,18 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
               {/* Gasto Actividad Física */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="flex items-center text-xs font-semibold text-slate-700">
-                    Gasto por Actividad Física
-                    <GlossaryTooltip
-                      term="gasto_actividad_panel"
-                      instanceId="tcp-exercise-calories"
-                      position="bottom"
-                    />
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="flex items-center gap-2 min-w-0 text-xs font-semibold text-slate-700">
+                    <span className="min-w-0">Gasto por Actividad Física</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="gasto_actividad_panel"
+                        instanceId="tcp-exercise-calories"
+                        position="bottom"
+                      />
+                    </span>
                   </span>
-                  <span className="font-mono text-xs font-bold text-slate-800 tabular-nums">
+                  <span className="font-mono text-xs font-bold text-slate-800 tabular-nums shrink-0">
                     {profile.exerciseCalories} kcal
                   </span>
                 </div>
@@ -263,13 +273,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
               <div className="grid grid-cols-2 gap-3">
                 {/* L-Citrulina */}
                 <div>
-                  <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>L-Citrulina (g)</span>
-                    <GlossaryTooltip
-                      term="citrulina_dosis_panel"
-                      instanceId="tcp-citrulline-dose"
-                      position="bottom"
-                    />
+                  <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-700 mb-1.5">
+                    <span className="min-w-0">L-Citrulina (g)</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="citrulina_dosis_panel"
+                        instanceId="tcp-citrulline-dose"
+                        position="bottom"
+                      />
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -301,13 +313,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
                 {/* Timing */}
                 <div>
-                  <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>Timing (min)</span>
-                    <GlossaryTooltip
-                      term="timing_suplementos_panel"
-                      instanceId="tcp-timing"
-                      position="bottom"
-                    />
+                  <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-700 mb-1.5">
+                    <span className="min-w-0">Timing (min)</span>
+                    <span className="shrink-0 -my-1.5">
+                      <GlossaryTooltip
+                        term="timing_suplementos_panel"
+                        instanceId="tcp-timing"
+                        position="bottom"
+                      />
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -382,13 +396,15 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
               {/* Semana del Mesociclo */}
               <div>
-                <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                  <span>Semana del Mesociclo Activa</span>
-                  <GlossaryTooltip
-                    term="semana_mesociclo_panel"
-                    instanceId="tcp-mesocycle-week"
-                    position="top"
-                  />
+                <label className="flex items-center justify-between gap-2 min-w-0 text-xs font-semibold text-slate-700 mb-1.5">
+                  <span className="min-w-0">Semana del Mesociclo Activa</span>
+                  <span className="shrink-0 -my-1.5">
+                    <GlossaryTooltip
+                      term="semana_mesociclo_panel"
+                      instanceId="tcp-mesocycle-week"
+                      position="top"
+                    />
+                  </span>
                 </label>
                 <select
                   value={profile.mesocycleWeek}
