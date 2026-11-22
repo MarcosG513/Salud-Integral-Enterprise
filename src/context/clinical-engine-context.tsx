@@ -29,6 +29,42 @@ import type {
 
 export { LIPID_FLOOR_MULTIPLIER };
 
+export type TrainingModality = "hypertrophy" | "strength" | "power" | "endurance";
+export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
+
+export interface ConcurrentCardioConfig {
+  enabled: boolean;
+  intensity: "low" | "high";
+  hoursGap: number;
+}
+
+export interface BiomechanicalScreenEntry {
+  score: 1 | 2 | 3;
+  notes?: string;
+}
+
+export interface WorkoutHistoryExercise {
+  id: string;
+  name: string;
+  isCompound: boolean;
+  targetRepMin: number;
+  targetRepMax: number;
+  targetRir: number;
+  loadKg: number;
+  completedSetsCount: number;
+  repsAchieved: number;
+  observedRir: number;
+}
+
+export interface WorkoutHistoryEntry {
+  id: string;
+  date: string;
+  workoutName: string;
+  modality: TrainingModality;
+  environment: TrainingEnvironment;
+  exercises: WorkoutHistoryExercise[];
+}
+
 // ── Esquema de Perfil Mínimo Autónomo + Alias de Compatibilidad ──────────────
 export interface ClinicalProfile {
   // Campos obligatorios mínimos (Entrada Mínima V6)
@@ -45,6 +81,15 @@ export interface ClinicalProfile {
 
   // Campo opcional (% grasa corporal: si es null -> fallback Mifflin-St Jeor)
   bodyFat: number | null;
+
+  // Configuración Fase 2 (Entrenamiento ACSM 2026 & Suplementación Condicional)
+  trainingModality: TrainingModality;
+  experienceLevel: ExperienceLevel;
+  bedtimeHour: number;
+  optInVascularVitality: boolean;
+  ashwagandhaSafetyCleared: boolean;
+  concurrentCardio: ConcurrentCardioConfig;
+  biomechanicalScreen: Record<string, BiomechanicalScreenEntry>;
 
   // Telemetría y calibración autónoma
   weightLogs: number[];
@@ -96,6 +141,13 @@ export const DEFAULT_CLINICAL_PROFILE: ClinicalProfile = {
   objetivo: "fat_loss",
   horarioEntreno: "afternoon",
   bodyFat: 14.5,
+  trainingModality: "hypertrophy",
+  experienceLevel: "intermediate",
+  bedtimeHour: 23,
+  optInVascularVitality: false,
+  ashwagandhaSafetyCleared: false,
+  concurrentCardio: { enabled: false, intensity: "low", hoursGap: 3 },
+  biomechanicalScreen: {},
   weightLogs: DEFAULT_WEIGHT_LOGS,
   dailySteps: 8500,
   sleepLogs: [7.5, 7.2, 7.8, 7.0, 7.6, 7.4, 7.5],
@@ -224,6 +276,34 @@ export function normalizeAndMigrateProfile(raw: any): ClinicalProfile {
     objetivo,
     horarioEntreno,
     bodyFat,
+    trainingModality:
+      source.trainingModality === "strength" ||
+      source.trainingModality === "power" ||
+      source.trainingModality === "endurance"
+        ? source.trainingModality
+        : "hypertrophy",
+    experienceLevel:
+      source.experienceLevel === "beginner" || source.experienceLevel === "advanced"
+        ? source.experienceLevel
+        : "intermediate",
+    bedtimeHour:
+      typeof source.bedtimeHour === "number" && Number.isFinite(source.bedtimeHour)
+        ? Math.max(18, Math.min(26, source.bedtimeHour))
+        : 23,
+    optInVascularVitality: Boolean(source.optInVascularVitality),
+    ashwagandhaSafetyCleared: Boolean(source.ashwagandhaSafetyCleared),
+    concurrentCardio:
+      source.concurrentCardio && typeof source.concurrentCardio === "object"
+        ? {
+            enabled: Boolean(source.concurrentCardio.enabled),
+            intensity: source.concurrentCardio.intensity === "high" ? "high" : "low",
+            hoursGap: Number(source.concurrentCardio.hoursGap ?? 3),
+          }
+        : DEFAULT_CLINICAL_PROFILE.concurrentCardio,
+    biomechanicalScreen:
+      source.biomechanicalScreen && typeof source.biomechanicalScreen === "object"
+        ? source.biomechanicalScreen
+        : {},
     weightLogs,
     sleepLogs: Array.isArray(source.sleepLogs)
       ? source.sleepLogs
@@ -276,16 +356,16 @@ export interface SupplementItem {
 }
 
 export const CLINICAL_SUPPLEMENTS: SupplementItem[] = [
-  { id: "cre", name: "Monohidrato de Creatina", abbr: "CrM", dose: "5.0 g", saturationBase: 100, pathway: "Resíntesis de ATP", cls: "A" },
-  { id: "cit", name: "Malato de L-Citrulina", abbr: "CitM", dose: "8.0 g", saturationBase: 0, pathway: "Saturación de eNOS", cls: "A" },
+  { id: "cre", name: "Monohidrato de Creatina", abbr: "CrM", dose: "3–5 g", saturationBase: 100, pathway: "Resíntesis de ATP", cls: "A" },
+  { id: "cit", name: "Malato de L-Citrulina", abbr: "CitM", dose: "6–8 g pre / 1.5–3 g vasc.", saturationBase: 0, pathway: "Saturación de eNOS", cls: "A" },
   { id: "ash", name: "Ashwagandha KSM-66", abbr: "KSM", dose: "600 mg", saturationBase: 74, pathway: "Atenuación de Cortisol", cls: "A" },
-  { id: "caf", name: "Cafeína Anhidra", abbr: "CAF", dose: "200 mg", saturationBase: 88, pathway: "Antagonismo de Adenosina", cls: "A" },
-  { id: "bet", name: "Beta-Alanina", abbr: "β-ALA", dose: "3.2 g", saturationBase: 50, pathway: "Amortiguación de Carnosina", cls: "A" },
+  { id: "caf", name: "Cafeína Anhidra", abbr: "CAF", dose: "3–6 mg/kg", saturationBase: 88, pathway: "Antagonismo de Adenosina", cls: "A" },
+  { id: "bet", name: "Beta-Alanina", abbr: "β-ALA", dose: "4–6 g", saturationBase: 50, pathway: "Amortiguación de Carnosina", cls: "A" },
   { id: "the", name: "L-Teanina", abbr: "THN", dose: "100 mg", saturationBase: 62, pathway: "Modulación de Ondas Alfa", cls: "B" },
-  { id: "mg", name: "Glicinato de Magnesio", abbr: "MG", dose: "400 mg", saturationBase: 80, pathway: "Regulación de NMDA", cls: "A" },
+  { id: "mg", name: "Glicinato de Magnesio", abbr: "MG", dose: "310–320 mg", saturationBase: 80, pathway: "Regulación de NMDA", cls: "A" },
   { id: "zn", name: "Picolinato de Zinc", abbr: "ZN", dose: "30 mg", saturationBase: 70, pathway: "Soporte Androgénico", cls: "A" },
-  { id: "o3", name: "Aceite de Pescado Omega-3", abbr: "O3", dose: "2.0 g", saturationBase: 85, pathway: "Sincronización de Membrana Celular", cls: "A" },
-  { id: "d3", name: "Vitamina D3", abbr: "D3", dose: "5000 UI", saturationBase: 90, pathway: "Transcripción del Receptor Nuclear", cls: "A" },
+  { id: "o3", name: "Aceite de Pescado Omega-3", abbr: "O3", dose: "1–3 g", saturationBase: 85, pathway: "Sincronización de Membrana Celular", cls: "A" },
+  { id: "d3", name: "Vitamina D3", abbr: "D3", dose: "600–800 UI", saturationBase: 90, pathway: "Transcripción del Receptor Nuclear", cls: "A" },
   { id: "wpi", name: "Aislado de Proteína de Suero", abbr: "WPI", dose: "30 g", saturationBase: 95, pathway: "Estimulación de MPS", cls: "A" },
   { id: "mel", name: "Melatonina", abbr: "MEL", dose: "3 mg", saturationBase: 100, pathway: "Agonismo de MT1/MT2", cls: "B" },
 ];
@@ -358,25 +438,32 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
     return safeGetItem(SIE_STORAGE_KEYS.CUSTOM_FOODS, {});
   });
 
-  // Active workout tracker
+  // Active workout tracker & historical workout sessions
   const [activeWorkout, setActiveWorkout] = useState<any>(() => {
     return safeGetItem(SIE_STORAGE_KEYS.WORKOUT, null);
   });
+  const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>(() => {
+    return safeGetItem<WorkoutHistoryEntry[]>(SIE_STORAGE_KEYS.WORKOUT_HISTORY, []);
+  });
 
-  // Supplement checklist selections
+  // Supplement checklist selections (ash inicia en false para compuerta hepática)
   const [supplementChecklist, setSupplementChecklist] = useState<Record<string, boolean>>(() => {
     return safeGetItem(SIE_STORAGE_KEYS.SUPPLEMENT_CHECKLIST, {
       cre: true,
-      ash: true,
+      ash: false,
       caf: false,
       bet: true,
       mg: true,
-      zn: true,
+      zn: false,
     });
   });
 
   const checklistRef = useRef(supplementChecklist);
   checklistRef.current = supplementChecklist;
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+  const activeWorkoutRef = useRef(activeWorkout);
+  activeWorkoutRef.current = activeWorkout;
 
   // Hormonal Lab Values
   const [hormonalLabValues, setHormonalLabValues] = useLocalStorage<HormonalLabValues>(
@@ -420,6 +507,10 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
   }, [activeWorkout]);
 
   useEffect(() => {
+    safeSetItem(SIE_STORAGE_KEYS.WORKOUT_HISTORY, workoutHistory);
+  }, [workoutHistory]);
+
+  useEffect(() => {
     safeSetItem(SIE_STORAGE_KEYS.SUPPLEMENT_CHECKLIST, supplementChecklist);
   }, [supplementChecklist]);
 
@@ -436,6 +527,8 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
           setCustomFoods(JSON.parse(event.newValue));
         } else if (event.key === SIE_STORAGE_KEYS.WORKOUT) {
           setActiveWorkout(JSON.parse(event.newValue));
+        } else if (event.key === SIE_STORAGE_KEYS.WORKOUT_HISTORY) {
+          setWorkoutHistory(JSON.parse(event.newValue));
         } else if (event.key === SIE_STORAGE_KEYS.SUPPLEMENT_CHECKLIST) {
           setSupplementChecklist(JSON.parse(event.newValue));
         } else if (event.key === SIE_STORAGE_KEYS.LABS) {
@@ -761,12 +854,89 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
   }, []);
 
   const finishWorkout = useCallback(() => {
+    const current = activeWorkoutRef.current;
+    const p = profileRef.current;
+
+    if (current && Array.isArray(current.exercises)) {
+      const completedExercises: WorkoutHistoryExercise[] = current.exercises
+        .map((ex: any) => {
+          const completedSetsCount = Array.isArray(ex.completedSets)
+            ? ex.completedSets.filter(Boolean).length
+            : 0;
+          if (completedSetsCount === 0) return null;
+
+          // Parse targetRepMin/Max from repRange string like "8–12" or "8-12"
+          const rangeParts = String(ex.repRange || "8-12")
+            .replace("–", "-")
+            .match(/\d+/g);
+          const repMin = Number(ex.targetRepMin ?? rangeParts?.[0] ?? 8);
+          const repMax = Number(ex.targetRepMax ?? rangeParts?.[1] ?? repMin);
+
+          return {
+            id: ex.id,
+            name: ex.name,
+            isCompound: ex.isCompound ?? true,
+            targetRepMin: repMin,
+            targetRepMax: repMax,
+            targetRir: Number(ex.targetRir ?? 2),
+            loadKg: Number(ex.loadKg ?? 0),
+            completedSetsCount,
+            repsAchieved: Number(ex.repsAchieved ?? repMax),
+            observedRir: Number(ex.observedRir ?? ex.targetRir ?? 2),
+          };
+        })
+        .filter(Boolean) as WorkoutHistoryExercise[];
+
+      if (completedExercises.length > 0) {
+        const entry: WorkoutHistoryEntry = {
+          id: `wh-${Date.now()}`,
+          date: new Date().toISOString(),
+          workoutName: current.name || "Sesión de Entreno",
+          modality: p.trainingModality || "hypertrophy",
+          environment: p.entornoEntreno || "gym",
+          exercises: completedExercises,
+        };
+        setWorkoutHistory((prev) => [...prev, entry].slice(-60));
+      }
+    }
+
     setActiveWorkout(null);
   }, []);
 
+  const clearAshwagandhaSafetyGate = useCallback(() => {
+    setProfile((prev) => ({
+      ...prev,
+      ashwagandhaSafetyCleared: true,
+    }));
+  }, []);
+
+  const updateBiomechanicalScore = useCallback(
+    (movementId: string, score: 1 | 2 | 3, notes?: string) => {
+      setProfile((prev) => ({
+        ...prev,
+        biomechanicalScreen: {
+          ...(prev.biomechanicalScreen || {}),
+          [movementId]: { score, notes },
+        },
+      }));
+    },
+    []
+  );
+
   // Supplement checklist action con activación de amortiguación hídrica de Creatina
+  // y compuerta hepática obligatoria para Ashwagandha
   const toggleSupplementChecked = useCallback((supplementId: string) => {
     const nextChecked = !checklistRef.current?.[supplementId];
+
+    if (
+      supplementId === "ash" &&
+      nextChecked &&
+      !profileRef.current.ashwagandhaSafetyCleared
+    ) {
+      // Compuerta obligatoria: impide habilitar Ashwagandha hasta pasar evaluación hepática
+      return;
+    }
+
     setSupplementChecklist((prev) => ({
       ...prev,
       [supplementId]: nextChecked,
@@ -906,6 +1076,7 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
       foodLogs,
       customFoods,
       activeWorkout,
+      workoutHistory,
       supplements: CLINICAL_SUPPLEMENTS,
       supplementChecklist,
       hormonalLabValues,
@@ -924,6 +1095,8 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
       toggleWorkoutSet,
       finishWorkout,
       toggleSupplementChecked,
+      clearAshwagandhaSafetyGate,
+      updateBiomechanicalScore,
       updateWorkoutExerciseLoad,
       updateExerciseLoadOverride,
       addCustomExercise,
@@ -943,6 +1116,7 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
       foodLogs,
       customFoods,
       activeWorkout,
+      workoutHistory,
       supplementChecklist,
       hormonalLabValues,
       customSupplementDose,
@@ -960,6 +1134,8 @@ export function ClinicalEngineProvider({ children }: { children: React.ReactNode
       toggleWorkoutSet,
       finishWorkout,
       toggleSupplementChecked,
+      clearAshwagandhaSafetyGate,
+      updateBiomechanicalScore,
       updateWorkoutExerciseLoad,
       updateExerciseLoadOverride,
       addCustomExercise,

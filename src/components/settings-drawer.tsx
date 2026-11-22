@@ -333,44 +333,44 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
               </div>
             </div>
 
-            {/* ── Sección 04: Periodización & SNC ─────────────────────────────── */}
+            {/* ── Sección 04: Periodización & Horario Circadiano ────────────────── */}
             <div className="rounded-2xl p-4 space-y-3.5 bg-indigo-50/40 border border-indigo-100 shadow-xs">
               <h3 className="text-[11px] font-bold text-indigo-700 font-mono tracking-[0.2em] uppercase flex items-center gap-1.5">
                 <span className="h-px flex-1 bg-indigo-200" />
-                04. PERIODIZACIÓN &amp; SNC
+                04. PERIODIZACIÓN &amp; DESCANSO
                 <span className="h-px flex-1 bg-indigo-200" />
               </h3>
 
-              {/* Readiness SNC */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="flex items-center text-xs font-semibold text-slate-700">
-                    Recuperación del SNC
-                    <GlossaryTooltip
-                      term="readiness_snc_panel"
-                      instanceId="tcp-cns-readiness"
-                      position="top"
-                    />
-                  </span>
-                  <span
-                    className="font-mono text-xs font-bold tabular-nums"
-                    style={{ color: profile.cnsReadiness < 70 ? "#E11D48" : "#4F46E5" }}
+              {/* Horario de Entreno & Hora de Sueño (Entrada mínima V6) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Horario de Entreno
+                  </label>
+                  <select
+                    value={profile.horarioEntreno || "afternoon"}
+                    onChange={(e) => updateProfileVariable("horarioEntreno", e.target.value)}
+                    className="w-full rounded-xl px-3 py-2 text-xs font-mono font-semibold bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500 shadow-xs cursor-pointer"
                   >
-                    {profile.cnsReadiness}%
-                  </span>
+                    <option value="morning">Mañana (~07:00)</option>
+                    <option value="afternoon">Tarde (~16:00)</option>
+                    <option value="evening">Noche (~20:00)</option>
+                  </select>
                 </div>
-                <input
-                  type="range"
-                  min="30"
-                  max="100"
-                  value={profile.cnsReadiness}
-                  onChange={(e) => updateProfileVariable('cnsReadiness', parseInt(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-slate-200 accent-indigo-600"
-                />
-                <div className="flex justify-between mt-1 font-mono text-[10px] text-slate-500">
-                  <span className="text-rose-600 font-bold">30% · Neurofatiga</span>
-                  <span>70% · Umbral</span>
-                  <span className="text-indigo-600 font-bold">100% · Óptimo</span>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Hora de Dormir
+                  </label>
+                  <select
+                    value={profile.bedtimeHour ?? 23}
+                    onChange={(e) => updateProfileVariable("bedtimeHour", parseInt(e.target.value))}
+                    className="w-full rounded-xl px-3 py-2 text-xs font-mono font-semibold bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500 shadow-xs cursor-pointer"
+                  >
+                    <option value="21">21:00 h</option>
+                    <option value="22">22:00 h</option>
+                    <option value="23">23:00 h</option>
+                    <option value="24">00:00 h</option>
+                  </select>
                 </div>
               </div>
 
@@ -391,9 +391,9 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 >
                   <option value="1">Semana 1 · MEV — Volumen Mínimo Efectivo</option>
                   <option value="2">Semana 2 · MAV-1 — Acumulación Progresiva</option>
-                  <option value="3">Semana 3 · MAV-2 — Pico Adaptativo</option>
-                  <option value="4">Semana 4 · MRV — Overreaching / Fallo Muscular</option>
-                  <option value="5">Semana 5 · DELOAD — Descarga Clínica</option>
+                  <option value="3">Semana 3 · MAV-2 — Estímulo Progresivo</option>
+                  <option value="4">Semana 4 · MAV/MRV — Estímulo Alto ACSM 2026</option>
+                  <option value="5">Semana 5 · DELOAD — Mantenimiento MV (4–8)</option>
                 </select>
               </div>
             </div>

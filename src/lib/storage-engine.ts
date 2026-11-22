@@ -11,6 +11,7 @@ export const SIE_STORAGE_KEYS = {
   SUPPLEMENT_CHECKLIST: "sie_v7_supplement_checklist",
   SUPPLEMENT_CUSTOM: "sie_v7_supplement_custom",
   WORKOUT: "sie_v7_workout",
+  WORKOUT_HISTORY: "sie_v7_workout_history",
   ATO: "sie_v7_ato",
 } as const;
 

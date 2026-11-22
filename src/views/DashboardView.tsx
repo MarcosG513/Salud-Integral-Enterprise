@@ -64,23 +64,18 @@ export function DashboardView({ onOpenSettings }: { onOpenSettings: () => void }
               ¡Hola, {profile.username || "Marcos"}! 👋
             </h1>
             <p className="text-slate-500 text-xs sm:text-sm font-medium mt-0.5">
-              Tu cuerpo está en estado óptimo hoy. Recuperación del SNC: <span className="font-bold text-emerald-600">{profile.cnsReadiness}%</span>
+              Sueño promedio: <span className="font-bold text-slate-900">{profile.horasSuenoPromedio ?? 7.4} h</span> ·{" "}
+              <span className={metrics.sleepProtection?.isSleepProtectionActive ? "font-bold text-amber-600" : "font-bold text-emerald-600"}>
+                {metrics.sleepProtection?.isSleepProtectionActive ? "Protección por Descanso Activa" : "Recuperación Nominal"}
+              </span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2 rounded-2xl text-xs font-semibold">
-            <span className="text-slate-500">SNC:</span>
-            <input 
-              type="range"
-              min="40"
-              max="100"
-              value={profile.cnsReadiness}
-              onChange={(e) => updateProfileVariable("cnsReadiness", parseInt(e.target.value))}
-              className="w-16 accent-rose-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <span className="font-bold text-slate-800">{profile.cnsReadiness}%</span>
+            <span className="text-slate-500">Motor:</span>
+            <span className="font-bold text-indigo-700">{metrics.algorithmStatusBadge || "Calibrando"}</span>
           </div>
 
           <button
