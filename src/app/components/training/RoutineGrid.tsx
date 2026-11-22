@@ -242,7 +242,7 @@ export function RoutineGrid({ activeWeek, plan: externalPlan, onTriggerRest }: P
                   onClick={() => updateProfileVariable("entornoEntreno", env.id)}
                   className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                     active
-                      ? "bg-slate-900 text-white shadow-sm"
+                      ? "bg-indigo-600 text-white shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -423,7 +423,7 @@ export function RoutineGrid({ activeWeek, plan: externalPlan, onTriggerRest }: P
             <span className="text-right pr-4">Carga</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 divide-y divide-slate-100">
             {sessionExercises.map((ex) => {
               const warmupOpen = expandedWarmupId === ex.id;
               const advice = ex.progressionAdvice;

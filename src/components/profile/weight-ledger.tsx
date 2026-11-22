@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Scale, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { useClinicalEngine } from "../../context/clinical-engine-context";
+import { parseLocaleNumber } from "../../lib/number-utils";
 import { Panel } from "./panel-shell";
 
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
@@ -48,8 +49,8 @@ export function WeightLedger() {
   const delta = emaLast - emaPrev;
 
   const add = () => {
-    const v = parseFloat(draft.replace(",", "."));
-    if (!isNaN(v) && v > 0) {
+    const v = parseLocaleNumber(draft);
+    if (v !== null && v > 20 && v < 350) {
       addWeightLog?.(Number(v.toFixed(1)));
       setDraft("");
     }
@@ -61,10 +62,12 @@ export function WeightLedger() {
         {/* Append input */}
         <div className="flex gap-2 shrink-0">
           <input
+            type="text"
+            inputMode="decimal"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && add()}
-            placeholder="KG REAL DE BÁSCULA"
+            placeholder="Ej: 84,7"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 outline-none text-slate-900 placeholder:text-slate-400 focus:border-sky-500 font-mono text-xs font-semibold shadow-xs"
             style={{ fontFamily: MONO }}
           />
@@ -99,8 +102,8 @@ export function WeightLedger() {
           </div>
         </div>
 
-        {/* Ledger list */}
-        <div className="mt-3 flex-1 min-h-0 overflow-y-auto pr-1">
+        {/* Ledger list (scroll unificado en contenedor principal <main>) */}
+        <div className="mt-3 flex-1 min-h-0 pr-1">
           <div className="flex flex-col gap-1.5">
             {(profile?.weightLogs || []).map((w: number, i: number) => {
               const isLast = i === (profile?.weightLogs || []).length - 1;

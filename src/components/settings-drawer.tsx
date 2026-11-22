@@ -1,6 +1,7 @@
 import React from 'react';
 import { useClinicalEngine } from '../context/clinical-engine-context';
 import { GlossaryTooltip } from '../app/components/widgets/ClinicalGlossary';
+import { parseLocaleNumber, parseLocaleInt } from '../lib/number-utils';
 
 export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { profile, updateProfileVariable, addWeightLog } = useClinicalEngine();
@@ -14,7 +15,7 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
   // Sync drafts when profile updates or drawer opens
   React.useEffect(() => {
-    setBodyFatDraft(String(profile.bodyFat ?? ''));
+    setBodyFatDraft(profile.bodyFat === null || profile.bodyFat === undefined ? '' : String(profile.bodyFat));
     setAgeDraft(String(profile.age ?? ''));
     setCitrullineDraft(String(profile.citrullineGrams ?? ''));
     setTimingDraft(String(profile.citrullineTimingMin ?? ''));
@@ -23,9 +24,8 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
   if (!isOpen) return null;
 
   const handleAddWeight = () => {
-    const normalized = newWeight.replace(',', '.').trim();
-    const parsed = parseFloat(normalized);
-    if (!isNaN(parsed) && parsed > 0) {
+    const parsed = parseLocaleNumber(newWeight);
+    if (parsed !== null && parsed > 20 && parsed < 350) {
       addWeightLog(Number(parsed.toFixed(1)));
       setNewWeight('');
     }
@@ -34,7 +34,7 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden font-sans">
       {/* Backdrop translúcido */}
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-800/35 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10 h-full max-h-[100dvh]">
         <div className="w-screen max-w-md bg-white border-l border-slate-200 text-slate-900 shadow-2xl flex flex-col h-full max-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0.5rem)]">
@@ -82,27 +82,35 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   <input
                     type="text"
                     inputMode="decimal"
+                    placeholder="Opcional"
                     value={bodyFatDraft}
                     onChange={(e) => {
                       const val = e.target.value;
                       setBodyFatDraft(val);
-                      const normalized = val.replace(',', '.');
-                      const parsed = parseFloat(normalized);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      if (val.trim() === '') {
+                        updateProfileVariable('bodyFat', null);
+                        return;
+                      }
+                      const parsed = parseLocaleNumber(val);
+                      if (parsed !== null && parsed >= 3 && parsed <= 60) {
                         updateProfileVariable('bodyFat', parsed);
                       }
                     }}
                     onBlur={() => {
-                      const normalized = bodyFatDraft.replace(',', '.');
-                      const parsed = parseFloat(normalized);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      if (bodyFatDraft.trim() === '') {
+                        updateProfileVariable('bodyFat', null);
+                        setBodyFatDraft('');
+                        return;
+                      }
+                      const parsed = parseLocaleNumber(bodyFatDraft);
+                      if (parsed !== null && parsed >= 3 && parsed <= 60) {
                         updateProfileVariable('bodyFat', parsed);
                         setBodyFatDraft(String(parsed));
                       } else {
-                        setBodyFatDraft(String(profile.bodyFat ?? 14.5));
+                        setBodyFatDraft(profile.bodyFat == null ? '' : String(profile.bodyFat));
                       }
                     }}
-                    className="w-full rounded-xl px-3 py-2 text-sm font-mono font-bold bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-xs"
+                    className="w-full rounded-xl px-3 py-2 text-sm font-mono font-bold bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-xs"
                   />
                 </div>
 
@@ -123,14 +131,14 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
                     onChange={(e) => {
                       const val = e.target.value;
                       setAgeDraft(val);
-                      const parsed = parseInt(val, 10);
-                      if (!isNaN(parsed) && parsed > 0) {
+                      const parsed = parseLocaleInt(val);
+                      if (parsed !== null && parsed >= 12 && parsed <= 110) {
                         updateProfileVariable('age', parsed);
                       }
                     }}
                     onBlur={() => {
-                      const parsed = parseInt(ageDraft, 10);
-                      if (!isNaN(parsed) && parsed > 0) {
+                      const parsed = parseLocaleInt(ageDraft);
+                      if (parsed !== null && parsed >= 12 && parsed <= 110) {
                         updateProfileVariable('age', parsed);
                         setAgeDraft(String(parsed));
                       } else {
@@ -270,16 +278,14 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
                     onChange={(e) => {
                       const val = e.target.value;
                       setCitrullineDraft(val);
-                      const normalized = val.replace(',', '.');
-                      const parsed = parseFloat(normalized);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      const parsed = parseLocaleNumber(val);
+                      if (parsed !== null && parsed >= 0 && parsed <= 20) {
                         updateProfileVariable('citrullineGrams', parsed);
                       }
                     }}
                     onBlur={() => {
-                      const normalized = citrullineDraft.replace(',', '.');
-                      const parsed = parseFloat(normalized);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      const parsed = parseLocaleNumber(citrullineDraft);
+                      if (parsed !== null && parsed >= 0 && parsed <= 20) {
                         updateProfileVariable('citrullineGrams', parsed);
                         setCitrullineDraft(String(parsed));
                       } else {
@@ -310,14 +316,14 @@ export function SettingsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: 
                     onChange={(e) => {
                       const val = e.target.value;
                       setTimingDraft(val);
-                      const parsed = parseInt(val, 10);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      const parsed = parseLocaleInt(val);
+                      if (parsed !== null && parsed >= 0 && parsed <= 180) {
                         updateProfileVariable('citrullineTimingMin', parsed);
                       }
                     }}
                     onBlur={() => {
-                      const parsed = parseInt(timingDraft, 10);
-                      if (!isNaN(parsed) && parsed >= 0) {
+                      const parsed = parseLocaleInt(timingDraft);
+                      if (parsed !== null && parsed >= 0 && parsed <= 180) {
                         updateProfileVariable('citrullineTimingMin', parsed);
                         setTimingDraft(String(parsed));
                       } else {

@@ -186,7 +186,7 @@ export function ChronoStrip({ plan: externalPlan }: { plan?: SupplementPlanOutpu
                   <span
                     className="text-[11px] uppercase tracking-[0.05em] text-center font-mono font-semibold whitespace-nowrap px-1"
                     style={{
-                      color: w.state === "pending" ? "#64748B" : "#1E293B",
+                      color: w.state === "pending" ? "#64748B" : "#0F172A",
                     }}
                   >
                     {w.label}

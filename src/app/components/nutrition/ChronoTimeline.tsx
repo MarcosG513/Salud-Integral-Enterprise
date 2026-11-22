@@ -96,7 +96,7 @@ export function ChronoTimeline() {
            Comidas y Metas del Día
         </h2>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 p-4 space-y-4">
         {scaledMeals.map((meal) => (
           <div
             key={`timeline-meal-${meal.id}`}

@@ -95,7 +95,7 @@ export function SupplementsView() {
                 onClick={() => updateProfileVariable("horarioEntreno", opt.id)}
                 className={`px-2.5 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                   (profile.horarioEntreno || "afternoon") === opt.id
-                    ? "bg-slate-900 text-white"
+                    ? "bg-indigo-600 text-white"
                     : "text-slate-600 hover:bg-slate-50"
                 }`}
               >

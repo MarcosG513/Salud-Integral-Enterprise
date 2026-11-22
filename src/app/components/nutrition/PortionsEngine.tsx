@@ -46,7 +46,7 @@ export function PortionsEngine({ selected }: Props) {
         </h2>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex flex-1 flex-col gap-4 p-4">
         {/* Session Target Lock with Sliders */}
         <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
           <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 font-mono">

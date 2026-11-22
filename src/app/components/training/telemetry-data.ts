@@ -1,10 +1,10 @@
 export const COLORS = {
-  space: "#070A13",
-  surface: "#0F1322",
-  border: "#1E293B",
-  cyan: "#00F0FF",
-  purple: "#A855F7",
-  crimson: "#FF4D4D",
+  space: "#F8FAFC",
+  surface: "#FFFFFF",
+  border: "#E2E8F0",
+  cyan: "#0284C7",
+  purple: "#8B5CF6",
+  crimson: "#F43F5E",
 };
 
 export type MesoWeek = {

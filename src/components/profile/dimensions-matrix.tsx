@@ -100,8 +100,8 @@ export function DimensionsMatrix() {
   const setAge = (val: number) => updateProfileVariable?.("age", val);
   const setSex = (val: "M" | "F") => updateProfileVariable?.("sex", val === "M" ? "male" : "female");
 
-  // Macro override overrides with strict Number parsing
-  const deficitTarget = Number(profile?.deficitTarget ?? profile?.superavit ?? 0);
+  // Macro & goal telemetry readouts with strict Number parsing
+  const deficitTarget = Number(profile?.deficitTarget ?? 0);
   const proteinMult = Number(profile?.factorProteina ?? 2.0);
   const fatMult = Number(profile?.factorGrasa ?? 1.0);
   const activityFactor = Number(profile?.activityFactor ?? 1.55);

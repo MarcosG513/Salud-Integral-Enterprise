@@ -7,17 +7,10 @@ import { CortisolMatrixPanel } from "../components/hormonal/CortisolMatrixPanel"
 import { mono } from "../components/hormonal/tokens";
 
 export function HormonalView() {
-  const { profile, metrics, updateProfileVariable } = useClinicalEngine();
+  const { metrics } = useClinicalEngine();
 
   const ea = metrics.energyAvailability;
   const suppressed = metrics.isREDSTriggered;
-
-  const handleEaChange = (newEa: number) => {
-    // Reverse engineering equation to calculate required deficit Target
-    // deficitTarget = tdee - exerciseCalories - (newEa * ffm)
-    const newDeficit = metrics.tdee - profile.exerciseCalories - (newEa * metrics.ffm);
-    updateProfileVariable("deficitTarget", Math.max(0, Math.round(newDeficit)));
-  };
 
   return (
     <div
@@ -30,7 +23,7 @@ export function HormonalView() {
         <AxisStatusBar suppressed={suppressed} />
 
         <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-3">
-          <EnergyAvailabilityPanel ea={ea} onEaChange={handleEaChange} />
+          <EnergyAvailabilityPanel ea={ea} />
           <DoreyProtocolPanel />
           <CortisolMatrixPanel />
         </div>

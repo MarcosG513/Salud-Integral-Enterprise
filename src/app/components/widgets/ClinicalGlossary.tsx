@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { useClinicalEngine } from "../../../context/clinical-engine-context";
 import { useState, useRef, useEffect, useCallback, useId } from "react";
 import ReactDOM from "react-dom";
@@ -173,12 +173,10 @@ export function GlossaryTooltip({ term, position = "top", instanceId }: Glossary
         onClick={handleToggle}
         aria-label={`Definición clínica de ${term}`}
         aria-expanded={isOpen}
-        className="min-w-[44px] min-h-[44px] p-2 inline-flex items-center justify-center rounded-full hover:bg-slate-100 active:bg-slate-200 transition-all cursor-pointer select-none focus:outline-none"
+        className="min-w-[44px] min-h-[44px] p-2 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/70 active:bg-indigo-100 transition-all cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         title={`Definición de ${term}`}
       >
-        <span className="flex items-center justify-center size-3.5 rounded-full border border-slate-300 bg-slate-50 text-[10px] font-bold text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 shadow-2xs">
-          i
-        </span>
+        <Info size={16} aria-hidden="true" />
       </button>
 
       {isOpen && (

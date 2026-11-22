@@ -60,42 +60,47 @@ export function MacroRings() {
   const ringsData = [
     { label: "Proteína", value: `${consumedProtein.toFixed(0)} / ${metrics.macros.protein} g`, pct: proteinPct, color: "#10B981", r: 92 },
     { label: "Carbos", value: `${consumedCarbs.toFixed(0)} / ${metrics.macros.carbs} g`, pct: carbPct, color: "#0284C7", r: 72 },
-    { label: "Grasas", value: `${consumedFats.toFixed(0)} / ${metrics.macros.fat} g`, pct: fatPct, color: "#F59E0B", r: 52 },
+    { label: "Grasas", value: `${consumedFats.toFixed(0)} / ${metrics.macros.fat} g`, pct: fatPct, color: "#06B6D4", r: 52 },
   ];
 
   const getStatusBadge = () => {
     if (metrics.isREDSTriggered) {
       return (
-        <span className="rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-rose-700 font-extrabold text-xs animate-pulse">
-          RED-S CRÍTICO
+        <span className="rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-rose-700 font-extrabold text-xs">
+          ESCUDO IOC 2023
         </span>
       );
     }
     if (metrics.isHardClampActive) {
       return (
-        <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-amber-800 font-extrabold text-xs">
-          CIERRE DE LÍPIDOS
+        <span className="rounded-full bg-sky-50 border border-sky-200 px-3 py-1 text-sky-700 font-extrabold text-xs">
+          PISO PROTEGIDO
         </span>
       );
     }
     return (
       <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-emerald-700 font-extrabold text-xs">
-        HOMEOSTASIS
+        {metrics.algorithmStatus === "calibrating" ? "CALIBRANDO" : "ACTUALIZANDO"}
       </span>
     );
   };
 
   return (
-    <div className="flex h-full flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl shadow-slate-200/40">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="font-extrabold text-base text-slate-900 tracking-tight">Anillos de Homeostasis</h3>
+    <div className="flex h-full flex-col rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h3 className="font-extrabold text-base text-slate-900 tracking-tight">Anillos de Homeostasis</h3>
+          <p className="text-[11px] font-medium text-slate-600">
+            {metrics.algorithmStatusBadge || "Calibrando algoritmo"} ({metrics.calibrationProgressPct ?? 50}%)
+          </p>
+        </div>
         {getStatusBadge()}
       </div>
       
-      <div className="relative flex flex-1 items-center justify-center min-h-[220px]">
+      <div className="relative flex flex-1 items-center justify-center min-h-[210px]">
         <svg
           viewBox="0 0 240 240"
-          className="w-full max-w-[240px]"
+          className="w-full max-w-[230px]"
           style={{ transform: "rotate(-90deg)" }}
         >
           {ringsData.map((ring) => (
@@ -104,11 +109,11 @@ export function MacroRings() {
             </g>
           ))}
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="tabular-nums text-slate-900 font-black text-2xl sm:text-3xl tracking-tight leading-none">
+        <div className="absolute inset-0 flex flex-col items-center justify-center max-w-[110px] mx-auto text-center pointer-events-none">
+          <span className="tabular-nums text-slate-900 font-black text-xl sm:text-2xl tracking-tight leading-none font-mono">
             {totalConsumedKcal.toLocaleString()}
           </span>
-          <span className="text-slate-500 font-bold text-xs sm:text-sm mt-1">
+          <span className="text-slate-600 font-bold text-[11px] sm:text-xs mt-1 leading-tight">
             / {metrics.targetCalories.toLocaleString()} kcal
           </span>
         </div>

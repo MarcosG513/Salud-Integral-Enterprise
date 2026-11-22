@@ -13,6 +13,8 @@ export const SIE_STORAGE_KEYS = {
   WORKOUT: "sie_v7_workout",
   WORKOUT_HISTORY: "sie_v7_workout_history",
   ATO: "sie_v7_ato",
+  ONBOARDING: "sie_v7_onboarding",
+  WEEKLY_CHECKIN: "sie_v7_weekly_checkin",
 } as const;
 
 export type StorageKey = typeof SIE_STORAGE_KEYS[keyof typeof SIE_STORAGE_KEYS];

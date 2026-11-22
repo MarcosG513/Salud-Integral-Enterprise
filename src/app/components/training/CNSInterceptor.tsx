@@ -212,7 +212,7 @@ export function CNSInterceptor({ activeWeek, plan: externalPlan, restTimerSignal
             }
             className={`py-1.5 px-2 rounded-xl border transition-all cursor-pointer ${
               !cardioCfg.enabled
-                ? "bg-slate-900 text-white border-slate-900"
+                ? "bg-indigo-600 text-white border-indigo-600"
                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >

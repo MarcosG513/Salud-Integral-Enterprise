@@ -222,7 +222,7 @@ export function ProfileView() {
               Aviso Clínico Informativo & Responsabilidad Médica
             </h4>
             <p className="text-xs text-slate-500 leading-relaxed font-sans">
-              Las métricas fisiológicas, estimaciones antropométricas (Cunningham / Mifflin-St. Jeor), cálculos de disponibilidad energética y directivas del orquestador ATO son herramientas digitales de soporte educativo y optimización personal del rendimiento. No sustituyen el criterio médico profesional, diagnóstico clínico ni tratamiento endocrinológico. Consulta siempre a un profesional sanitario colegiado antes de emprender cambios drásticos en tus parámetros hormonales, calóricos o de entrenamiento.
+              Las métricas fisiológicas, estimaciones antropométricas (Katch-McArdle / Cunningham 1980 / Mifflin-St Jeor), cálculos de disponibilidad energética (Consenso IOC 2023) y directivas del orquestador ATO son herramientas digitales de soporte educativo y optimización personal del rendimiento. No sustituyen el criterio médico profesional, diagnóstico clínico ni tratamiento endocrinológico. Consulta siempre a un profesional sanitario colegiado antes de emprender cambios drásticos en tus parámetros hormonales, calóricos o de entrenamiento.
             </p>
           </div>
         </div>

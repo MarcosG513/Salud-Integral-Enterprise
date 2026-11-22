@@ -141,7 +141,7 @@ export function FoodSelectorGrid({ selected, onToggle }: Props) {
       </div>
 
       {/* Foods Grid List */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+      <div className="flex-1 p-3 sm:p-4">
         <div className="flex flex-col gap-2.5">
           {allFoods.map((f) => {
             const isSel = selected.includes(f.id);
