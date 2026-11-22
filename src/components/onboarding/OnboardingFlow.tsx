@@ -60,8 +60,12 @@ const ACTIVITY_OPTIONS = [
 
 export function OnboardingFlow({
   onOpenSettings,
+  onOpenHelp,
+  externalAction,
 }: {
   onOpenSettings?: () => void;
+  onOpenHelp?: () => void;
+  externalAction?: { mode: "welcome" | "tour"; nonce: number } | null;
 }) {
   const {
     profile,
@@ -108,6 +112,23 @@ export function OnboardingFlow({
     setShowWelcome(false);
     persistOnboarding({ ...onboarding, completedWelcome: true });
   };
+
+  useEffect(() => {
+    if (!externalAction) return;
+    if (externalAction.mode === "tour") {
+      setShowWelcome(false);
+      setTourIndex(0);
+      setShowTour(true);
+    } else if (externalAction.mode === "welcome") {
+      setShowTour(false);
+      setShowWelcome(true);
+      setOnboarding((prev) => {
+        const next = { ...prev, dismissedChecklist: false };
+        safeSetItem(SIE_STORAGE_KEYS.ONBOARDING, next);
+        return next;
+      });
+    }
+  }, [externalAction?.nonce, externalAction?.mode]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -478,20 +499,37 @@ export function OnboardingFlow({
                 de Mifflin-St Jeor.
               </p>
 
-              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={handleDismissWelcome}
-                  className="w-full sm:w-auto min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >
-                  Omitir por ahora
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto min-h-[44px] rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-indigo-700 cursor-pointer"
-                >
-                  Guardar Perfil Mínimo
-                </button>
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 pt-2">
+                {onOpenHelp ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDismissWelcome();
+                      onOpenHelp();
+                    }}
+                    className="w-full sm:w-auto min-h-[44px] rounded-xl px-3 py-2 text-xs font-bold text-sky-700 hover:bg-sky-50 underline underline-offset-4 cursor-pointer"
+                  >
+                    Ver guía completa de la app
+                  </button>
+                ) : (
+                  <span />
+                )}
+
+                <div className="flex flex-col-reverse sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleDismissWelcome}
+                    className="w-full sm:w-auto min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  >
+                    Omitir por ahora
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto min-h-[44px] rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-indigo-700 cursor-pointer"
+                  >
+                    Guardar Perfil Mínimo
+                  </button>
+                </div>
               </div>
             </form>
           </div>

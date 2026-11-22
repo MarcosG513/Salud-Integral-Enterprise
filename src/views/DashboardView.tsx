@@ -15,6 +15,7 @@ import {
   CalendarCheck,
   ArrowUpRight,
   SlidersHorizontal,
+  HelpCircle,
 } from "lucide-react";
 import { useClinicalEngine } from "../context/clinical-engine-context";
 import { generateTrainingPlan } from "../engine/trainingEngine";
@@ -58,9 +59,11 @@ function daysSinceIso(iso: string | null): number | null {
 export function DashboardView({
   onOpenSettings,
   onNavigateTab,
+  externalOnboardingAction,
 }: {
   onOpenSettings: () => void;
   onNavigateTab?: (tab: string) => void;
+  externalOnboardingAction?: { mode: "welcome" | "tour"; nonce: number } | null;
 }) {
   const {
     profile,
@@ -213,29 +216,45 @@ export function DashboardView({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2 rounded-xl text-xs font-semibold">
-            <span className="text-slate-600">Motor:</span>
-            <span className="font-bold text-indigo-700">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end min-w-0">
+          <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2 rounded-xl text-xs font-semibold min-w-0">
+            <span className="text-slate-600 shrink-0">Motor:</span>
+            <span className="font-bold text-indigo-700 truncate">
               {metrics.algorithmStatusBadge || "Calibrando algoritmo"} (
               {metrics.calibrationProgressPct ?? 0}%)
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-200 px-4 py-2 text-xs text-slate-800 hover:bg-slate-100 transition-colors font-bold shrink-0 cursor-pointer"
-          >
-            <SlidersHorizontal size={15} className="text-slate-600" />
-            <span>Ajustes</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => onNavigateTab?.("help")}
+              aria-label="Abrir guía y ayuda"
+              title="Guía de Uso y Configuración"
+              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-xl bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 transition-colors cursor-pointer shrink-0"
+            >
+              <HelpCircle size={18} />
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-200 px-4 py-2 text-xs text-slate-800 hover:bg-slate-100 transition-colors font-bold shrink-0 cursor-pointer"
+            >
+              <SlidersHorizontal size={15} className="text-slate-600" />
+              <span>Ajustes</span>
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Lazy Onboarding Flow (Single non-repeating modal + persistent checklist + 4-step tour) */}
       <Suspense fallback={null}>
-        <OnboardingFlow onOpenSettings={onOpenSettings} />
+        <OnboardingFlow
+          onOpenSettings={onOpenSettings}
+          onOpenHelp={() => onNavigateTab?.("help")}
+          externalAction={externalOnboardingAction}
+        />
       </Suspense>
 
       {/* Exactly 3 Main Interpretive Cards */}

@@ -1,6 +1,7 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, type ReactNode } from "react";
 import { SidebarNav } from "./sidebar-nav";
 import { ViewSkeletonLoader } from "./ui/ViewSkeletonLoader";
+import type { ExternalQuickLogTab } from "../../components/quick-log/QuickActionBottomSheet";
 
 // Dashboard view (kept eager for instantaneous first paint)
 import { DashboardView } from "../../views/DashboardView";
@@ -15,15 +16,35 @@ const QuickActionBottomSheet = lazy(() => import("../../components/quick-log/Qui
 
 interface DashboardLayoutProps {
   onOpenSettings: () => void;
+  activeTab?: string;
+  onActiveTabChange?: (tab: string) => void;
+  helpView?: ReactNode;
+  quickLogRequest?: { tab: ExternalQuickLogTab; nonce: number } | null;
+  onboardingAction?: { mode: "welcome" | "tour"; nonce: number } | null;
 }
 
-export function DashboardLayout({ onOpenSettings }: DashboardLayoutProps) {
-  const [activeTab, setActiveTab] = useState("dashboard");
+export function DashboardLayout({
+  onOpenSettings,
+  activeTab: controlledTab,
+  onActiveTabChange,
+  helpView,
+  quickLogRequest,
+  onboardingAction,
+}: DashboardLayoutProps) {
+  const [internalTab, setInternalTab] = useState("dashboard");
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = onActiveTabChange ?? setInternalTab;
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardView onOpenSettings={onOpenSettings} onNavigateTab={setActiveTab} />;
+        return (
+          <DashboardView
+            onOpenSettings={onOpenSettings}
+            onNavigateTab={setActiveTab}
+            externalOnboardingAction={onboardingAction}
+          />
+        );
 
       case "nutrition":
         return (
@@ -60,6 +81,9 @@ export function DashboardLayout({ onOpenSettings }: DashboardLayoutProps) {
           </Suspense>
         );
 
+      case "help":
+        return helpView ?? null;
+
       default:
         return (
           <div className="flex-1 flex items-center justify-center p-6">
@@ -79,7 +103,10 @@ export function DashboardLayout({ onOpenSettings }: DashboardLayoutProps) {
         {renderContent()}
       </main>
       <Suspense fallback={null}>
-        <QuickActionBottomSheet onNavigateTab={setActiveTab} />
+        <QuickActionBottomSheet
+          onNavigateTab={setActiveTab}
+          externalOpenRequest={quickLogRequest}
+        />
       </Suspense>
     </div>
   );

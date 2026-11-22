@@ -31,7 +31,25 @@ import {
 import { syncNativeHealthData } from "../../services/healthSync";
 
 type QuickTab = "peso" | "comida" | "habitos" | "entreno";
+export type ExternalQuickLogTab = QuickTab | "weight" | "meal" | "sleep" | "training";
 type FoodSubMode = "rapido" | "etiqueta" | "ai_describe" | "photo_detect";
+
+function mapExternalTabToQuickTab(tab: ExternalQuickLogTab): QuickTab {
+  switch (tab) {
+    case "weight":
+    case "peso":
+      return "peso";
+    case "meal":
+    case "comida":
+      return "comida";
+    case "sleep":
+    case "habitos":
+      return "habitos";
+    case "training":
+    case "entreno":
+      return "entreno";
+  }
+}
 
 interface EditableAiIngredient {
   id: string;
@@ -95,8 +113,10 @@ function computeScaledMacros(item: EditableAiIngredient) {
 
 export function QuickActionBottomSheet({
   onNavigateTab,
+  externalOpenRequest,
 }: {
   onNavigateTab?: (tab: string) => void;
+  externalOpenRequest?: { tab: ExternalQuickLogTab; nonce: number } | null;
 }) {
   const {
     profile,
@@ -165,6 +185,14 @@ export function QuickActionBottomSheet({
       setIsListening(false);
     }
   }, [isOpen, profile.peso, profile.horasSuenoPromedio, profile.dailySteps]);
+
+  useEffect(() => {
+    if (!externalOpenRequest) return;
+    setActiveTab(mapExternalTabToQuickTab(externalOpenRequest.tab));
+    setFeedback(null);
+    setErrorNotice(null);
+    setIsOpen(true);
+  }, [externalOpenRequest?.nonce, externalOpenRequest?.tab]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

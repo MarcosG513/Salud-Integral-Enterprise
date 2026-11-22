@@ -1,28 +1,29 @@
-import { Cpu, ChevronDown } from "lucide-react";
+import { Cpu, ChevronDown, HelpCircle } from "lucide-react";
 import { useClinicalEngine } from "../../../context/clinical-engine-context";
 
 interface TelemetryHeaderProps {
   onOpenSettings: () => void;
+  onOpenHelp?: () => void;
 }
 
-export function TelemetryHeader({ onOpenSettings }: TelemetryHeaderProps) {
+export function TelemetryHeader({ onOpenSettings, onOpenHelp }: TelemetryHeaderProps) {
   const { profile, metrics } = useClinicalEngine();
 
   return (
-    <div className="flex h-full items-center justify-between gap-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm text-slate-900">
+    <div className="flex h-full items-center justify-between gap-4 rounded-3xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm text-slate-900 min-w-0">
       <div
-        className="flex cursor-pointer items-center gap-5 select-none hover:opacity-85 transition-opacity"
+        className="flex cursor-pointer items-center gap-4 sm:gap-5 select-none hover:opacity-85 transition-opacity min-w-0 flex-1"
         onClick={onOpenSettings}
         title="Abrir Parámetros Clínicos"
       >
-        <div className="relative">
-          <div className="flex size-14 items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 text-sky-700 shadow-xs">
-            <span className="font-bold text-lg">MM</span>
+        <div className="relative shrink-0">
+          <div className="flex size-12 sm:size-14 items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 text-sky-700 shadow-xs">
+            <span className="font-bold text-base sm:text-lg">MM</span>
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white bg-emerald-500" />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-base text-slate-900">
               {profile.username || "Marcos M."}
@@ -50,8 +51,8 @@ export function TelemetryHeader({ onOpenSettings }: TelemetryHeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
           <span className="relative flex size-2">
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
@@ -60,6 +61,18 @@ export function TelemetryHeader({ onOpenSettings }: TelemetryHeaderProps) {
             {metrics.algorithmStatusBadge || "Motor Autónomo V6"}
           </span>
         </div>
+
+        {onOpenHelp && (
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            aria-label="Abrir guía de uso y ayuda"
+            title="Guía de Uso y Configuración"
+            className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-700 transition-colors cursor-pointer shrink-0"
+          >
+            <HelpCircle size={19} />
+          </button>
+        )}
       </div>
     </div>
   );
